@@ -139,7 +139,7 @@
 
     .card-wrap,
     .info-panel,
-    .rsvp-panel {
+    .action-panel {
       border: 1px solid rgba(216, 184, 106, 0.5);
       box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45), inset 0 0 42px rgba(255, 244, 202, 0.035);
       backdrop-filter: blur(10px);
@@ -173,9 +173,12 @@
       line-height: 1.45;
     }
 
-    .image-fallback a {
+    .image-fallback a,
+    .location-link {
       color: var(--gold);
       font-weight: 700;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 4px;
     }
 
     .info-panel {
@@ -197,7 +200,8 @@
       margin-bottom: 8px;
     }
 
-    .info-panel h2 {
+    .info-panel h2,
+    .action-panel h2 {
       margin: 0 0 18px;
       font-family: "Uncial Antiqua", serif;
       font-size: clamp(2rem, 3.8vw, 3.15rem);
@@ -226,7 +230,7 @@
       white-space: pre-line;
     }
 
-    .rsvp-panel {
+    .action-panel {
       grid-column: 1 / -1;
       margin-top: 6px;
       border-radius: 28px;
@@ -237,12 +241,21 @@
         rgba(10, 18, 15, 0.55);
     }
 
-    .rsvp-button {
+    .registry-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px;
+      margin: 12px auto 24px;
+      max-width: 860px;
+    }
+
+    .magic-button {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-width: min(100%, 360px);
-      padding: 18px 34px;
+      min-width: min(100%, 240px);
+      padding: 15px 26px;
       border-radius: 999px;
       border: 1px solid rgba(255, 239, 190, 0.7);
       color: #1d241e;
@@ -250,19 +263,30 @@
       text-decoration: none;
       font-family: "Cinzel", serif;
       font-weight: 700;
-      letter-spacing: 0.12em;
-      font-size: clamp(1.3rem, 3vw, 2rem);
+      letter-spacing: 0.09em;
+      font-size: clamp(1rem, 2vw, 1.25rem);
       box-shadow: 0 16px 38px rgba(0, 0, 0, 0.32);
       transition: transform 180ms ease, filter 180ms ease, box-shadow 180ms ease;
+      user-select: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    .rsvp-button:hover {
+    .magic-button:hover {
       transform: translateY(-2px) scale(1.01);
       filter: brightness(1.08);
       box-shadow: 0 20px 46px rgba(0, 0, 0, 0.38);
     }
 
-    .rsvp-note {
+    .rsvp-button {
+      min-width: min(100%, 360px);
+      padding: 18px 34px;
+      letter-spacing: 0.12em;
+      font-size: clamp(1.3rem, 3vw, 2rem);
+    }
+
+    .action-note {
       margin: 14px auto 0;
       max-width: 680px;
       color: rgba(255, 248, 232, 0.82);
@@ -321,9 +345,9 @@
 
   <main class="page">
     <header>
-      <div class="eyebrow">A baby shower in honor of</div>
+      <div class="eyebrow">A baby shower in honor of Vanessa Feblowitz</div>
       <h1>Ophilia Arwen<br>Feblowitz</h1>
-      <p class="subtitle">A woodland tale of flowers, starlight, storybook magic, and a little elven wonder soon to arrive.</p>
+      <p class="subtitle">Ophelia Arwen Feblowitz arriving this October</p>
       <div class="ornament">✦ ❧ ✦</div>
     </header>
 
@@ -361,15 +385,21 @@
         </div>
       </aside>
 
-      <section class="rsvp-panel">
-        <a id="rsvpButton" class="rsvp-button" href="#" target="_blank" rel="noopener">RSVP</a>
-        <p class="rsvp-note">Kindly respond through the enchanted scroll above.</p>
+      <section class="action-panel">
+        <div class="panel-title">Gifts & Reply</div>
+        <h2>Registry</h2>
+        <div class="registry-buttons" id="registryButtons"></div>
+
+        <a id="rsvpButton" class="magic-button rsvp-button" href="#" target="_blank" rel="noopener">RSVP</a>
+        <p class="action-note">Kindly respond through the enchanted scroll above.</p>
       </section>
     </section>
   </main>
 
   <script>
-    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTq6ndKZ6FPdg9MYoijFW3J9cC76rXblQzzql6rU1zAMLE6Lpj8nBrOjiiJPCIxMjTWet2H2MdbK8WU/pub?output=csv";
+    // This targets the published Google Sheet tab named "WebInfo".
+    // If Google changes how the published CSV endpoint behaves, use the direct CSV link from File > Share > Publish to web > WebInfo > CSV.
+    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTq6ndKZ6FPdg9MYoijFW3J9cC76rXblQzzql6rU1zAMLE6Lpj8nBrOjiiJPCIxMjTWet2H2MdbK8WU/pub?output=csv&sheet=WebInfo";
 
     const fieldMap = {
       "location": "location",
@@ -422,22 +452,77 @@
       return rows.filter(r => r.some(c => String(c).trim() !== ""));
     }
 
-    function getValueToRight(rows, label) {
+    function findCell(rows, label) {
       const target = normalize(label);
 
-      for (const row of rows) {
-        for (let i = 0; i < row.length; i++) {
-          if (normalize(row[i]) === target) {
-            return (row[i + 1] || "").trim();
+      for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+        const row = rows[rowIndex];
+        for (let colIndex = 0; colIndex < row.length; colIndex++) {
+          if (normalize(row[colIndex]) === target) {
+            return { row, rowIndex, colIndex };
           }
         }
       }
 
-      return "";
+      return null;
+    }
+
+    function getValueToRight(rows, label) {
+      const match = findCell(rows, label);
+      if (!match) return "";
+      return (match.row[match.colIndex + 1] || "").trim();
+    }
+
+    function getRegistryLinks(rows, maxLinks = 5) {
+      const match = findCell(rows, "Registries");
+      if (!match) return [];
+
+      return match.row
+        .slice(match.colIndex + 1, match.colIndex + 1 + maxLinks)
+        .map(value => String(value || "").trim())
+        .filter(value => value.length > 0);
+    }
+
+    function makeRegistryButtonText(url) {
+      const lower = url.toLowerCase();
+
+      if (lower.includes("etsy")) return "Etsy Registry";
+      if (lower.includes("amazon")) return "Amazon Registry";
+
+      try {
+        const parsed = new URL(url);
+        const host = parsed.hostname.replace(/^www\./i, "");
+        const siteName = host.split(".")[0] || "Gift";
+        return `${siteName.charAt(0).toUpperCase()}${siteName.slice(1)} Registry`;
+      } catch (error) {
+        const match = url.match(/www\.([^./]+)\.com/i) || url.match(/https?:\/\/([^./]+)\./i);
+        const siteName = match ? match[1] : "Gift";
+        return `${siteName.charAt(0).toUpperCase()}${siteName.slice(1)} Registry`;
+      }
     }
 
     function setText(id, value, fallback = "Coming soon") {
       document.getElementById(id).textContent = value || fallback;
+    }
+
+    function setLinkedLocation(locationText, locationLink) {
+      const locationElement = document.getElementById("location");
+      const cleanText = locationText || "Coming soon";
+
+      if (!locationLink) {
+        locationElement.textContent = cleanText;
+        return;
+      }
+
+      const link = document.createElement("a");
+      link.className = "location-link";
+      link.href = locationLink;
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.textContent = cleanText;
+
+      locationElement.textContent = "";
+      locationElement.appendChild(link);
     }
 
     function setEmbeddableImage(imgElement, fallbackElement, fallbackLink, url) {
@@ -478,6 +563,29 @@
       tester.src = url;
     }
 
+    function createRegistryButtons(links) {
+      const container = document.getElementById("registryButtons");
+      container.textContent = "";
+
+      if (!links.length) {
+        const note = document.createElement("p");
+        note.className = "action-note";
+        note.textContent = "Registry links coming soon.";
+        container.appendChild(note);
+        return;
+      }
+
+      for (const linkUrl of links) {
+        const button = document.createElement("a");
+        button.className = "magic-button";
+        button.href = linkUrl;
+        button.target = "_blank";
+        button.rel = "noopener";
+        button.textContent = makeRegistryButtonText(linkUrl);
+        container.appendChild(button);
+      }
+    }
+
     function createSparkles(count = 55) {
       const container = document.getElementById("sparkles");
       const fragment = document.createDocumentFragment();
@@ -508,6 +616,9 @@
         const cardUrl = getValueToRight(rows, "Link  to Card") || getValueToRight(rows, "Link to Card");
         const backgroundUrl = getValueToRight(rows, "Link to Background");
         const rsvpUrl = getValueToRight(rows, "RSVP link");
+        const locationText = getValueToRight(rows, "Location");
+        const locationLink = getValueToRight(rows, "Location link");
+        const registryLinks = getRegistryLinks(rows, 5);
 
         setEmbeddableImage(
           document.getElementById("mainCard"),
@@ -517,10 +628,15 @@
         );
 
         setBackground(backgroundUrl);
+        setLinkedLocation(locationText, locationLink);
 
         for (const [sheetLabel, elementId] of Object.entries(fieldMap)) {
-          setText(elementId, getValueToRight(rows, sheetLabel));
+          if (sheetLabel !== "location") {
+            setText(elementId, getValueToRight(rows, sheetLabel));
+          }
         }
+
+        createRegistryButtons(registryLinks);
 
         const rsvpButton = document.getElementById("rsvpButton");
         if (rsvpUrl) {
@@ -535,6 +651,7 @@
         setText("dateTime", "Please check the published sheet link");
         setText("moreInfo", "Make sure the sheet is published to the web as CSV");
         setText("contact", "");
+        createRegistryButtons([]);
 
         document.getElementById("mainCard").style.display = "none";
         document.getElementById("cardFallback").style.display = "block";
