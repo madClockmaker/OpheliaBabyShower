@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ophilia Arwen Feblowitz Baby Shower</title>
+  <title>Ophelia Arwen Feblowitz Baby Shower</title>
 
   <!-- Medieval / storybook-style Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -232,7 +232,6 @@
 
     .action-panel {
       grid-column: 1 / -1;
-      margin-top: 6px;
       border-radius: 28px;
       padding: clamp(22px, 3vw, 34px);
       text-align: center;
@@ -241,12 +240,23 @@
         rgba(10, 18, 15, 0.55);
     }
 
+    .registry-panel {
+      margin-top: 6px;
+    }
+
+    .rsvp-panel {
+      margin-top: 0;
+      background:
+        linear-gradient(135deg, rgba(32, 55, 45, 0.68), rgba(112, 53, 67, 0.52)),
+        rgba(10, 18, 15, 0.58);
+    }
+
     .registry-buttons {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 14px;
-      margin: 12px auto 24px;
+      margin: 12px auto 0;
       max-width: 860px;
     }
 
@@ -345,8 +355,8 @@
 
   <main class="page">
     <header>
-      <div class="eyebrow">A baby shower in honor of Vanessa Feblowitz</div>
-      <h1>Ophilia Arwen<br>Feblowitz</h1>
+      <div class="eyebrow">A baby shower in honor of</div>
+      <h1>Vanessa Feblowitz</h1>
       <p class="subtitle">Ophelia Arwen Feblowitz arriving this October</p>
       <div class="ornament">✦ ❧ ✦</div>
     </header>
@@ -385,11 +395,15 @@
         </div>
       </aside>
 
-      <section class="action-panel">
-        <div class="panel-title">Gifts & Reply</div>
+      <section class="action-panel registry-panel">
+        <div class="panel-title">Gifts for the Little One</div>
         <h2>Registry</h2>
         <div class="registry-buttons" id="registryButtons"></div>
+      </section>
 
+      <section class="action-panel rsvp-panel">
+        <div class="panel-title">Send Your Reply</div>
+        <h2>RSVP</h2>
         <a id="rsvpButton" class="magic-button rsvp-button" href="#" target="_blank" rel="noopener">RSVP</a>
         <p class="action-note">Kindly respond through the enchanted scroll above.</p>
       </section>
@@ -400,6 +414,13 @@
     // This targets the published Google Sheet tab named "WebInfo".
     // If Google changes how the published CSV endpoint behaves, use the direct CSV link from File > Share > Publish to web > WebInfo > CSV.
     const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTq6ndKZ6FPdg9MYoijFW3J9cC76rXblQzzql6rU1zAMLE6Lpj8nBrOjiiJPCIxMjTWet2H2MdbK8WU/pub?output=csv&sheet=WebInfo";
+
+    // Add local fallback paths here if you want the site to work even when an external image link hiccups.
+    // Example GitHub repo setup:
+    // /assets/card.jpg
+    // /assets/background.jpg
+    const FALLBACK_CARD_IMAGE = "";
+    const FALLBACK_BACKGROUND_IMAGE = "";
 
     const fieldMap = {
       "location": "location",
@@ -413,6 +434,12 @@
         .trim()
         .toLowerCase()
         .replace(/\s+/g, " ");
+    }
+
+    function cacheBustUrl(url) {
+      if (!url || url.startsWith("data:")) return url;
+      const separator = url.includes("?") ? "&" : "?";
+      return `${url}${separator}v=${Date.now()}`;
     }
 
     function parseCsv(text) {
@@ -525,42 +552,83 @@
       locationElement.appendChild(link);
     }
 
-    function setEmbeddableImage(imgElement, fallbackElement, fallbackLink, url) {
-      if (!url) {
+    function preloadImage(url, options = {}) {
+      const {
+        retries = 3,
+        delay = 900,
+        useCacheBust = true
+      } = options;
+
+      return new Promise((resolve, reject) => {
+        let attempt = 0;
+
+        const tryLoad = () => {
+          const image = new Image();
+          const src = attempt > 0 && useCacheBust ? cacheBustUrl(url) : url;
+
+          image.onload = () => resolve(src);
+          image.onerror = () => {
+            attempt++;
+            if (attempt <= retries) {
+              setTimeout(tryLoad, delay * attempt);
+            } else {
+              reject(new Error(`Image failed to load after ${retries + 1} attempts: ${url}`));
+            }
+          };
+
+          image.src = src;
+        };
+
+        tryLoad();
+      });
+    }
+
+    async function setEmbeddableImage(imgElement, fallbackElement, fallbackLink, primaryUrl, fallbackUrl = "") {
+      const urlsToTry = [primaryUrl, fallbackUrl].filter(Boolean);
+
+      if (!urlsToTry.length) {
         imgElement.style.display = "none";
         fallbackElement.style.display = "block";
         fallbackLink.removeAttribute("href");
         fallbackLink.textContent = "Image link missing in Google Sheet";
+        document.getElementById("cardWrap").classList.remove("loading");
         return;
       }
 
-      fallbackLink.href = url;
-      imgElement.src = url;
+      fallbackLink.href = primaryUrl || fallbackUrl;
 
-      imgElement.onload = () => {
-        imgElement.style.display = "block";
-        fallbackElement.style.display = "none";
-        document.getElementById("cardWrap").classList.remove("loading");
-      };
+      for (const url of urlsToTry) {
+        try {
+          const loadedUrl = await preloadImage(url, { retries: 4, delay: 800, useCacheBust: true });
+          imgElement.src = loadedUrl;
+          imgElement.style.display = "block";
+          fallbackElement.style.display = "none";
+          document.getElementById("cardWrap").classList.remove("loading");
+          return;
+        } catch (error) {
+          console.warn(error.message);
+        }
+      }
 
-      imgElement.onerror = () => {
-        imgElement.style.display = "none";
-        fallbackElement.style.display = "block";
-        document.getElementById("cardWrap").classList.remove("loading");
-      };
+      imgElement.style.display = "none";
+      fallbackElement.style.display = "block";
+      document.getElementById("cardWrap").classList.remove("loading");
     }
 
-    function setBackground(url) {
-      if (!url) return;
+    async function setBackground(primaryUrl, fallbackUrl = "") {
+      const urlsToTry = [primaryUrl, fallbackUrl].filter(Boolean);
 
-      const tester = new Image();
-      tester.onload = () => {
-        document.body.style.setProperty("--site-background", `url("${url}")`);
-      };
-      tester.onerror = () => {
-        console.warn("Background image could not be embedded. Use a direct image URL or host it in the GitHub repo.", url);
-      };
-      tester.src = url;
+      for (const url of urlsToTry) {
+        try {
+          const loadedUrl = await preloadImage(url, { retries: 4, delay: 800, useCacheBust: true });
+          document.body.style.setProperty("--site-background", `url("${loadedUrl}")`);
+          return;
+        } catch (error) {
+          console.warn(error.message);
+        }
+      }
+
+      console.warn("Background image could not be embedded. Best fix: put the image in /assets/background.jpg and set FALLBACK_BACKGROUND_IMAGE to that path.");
     }
 
     function createRegistryButtons(links) {
@@ -607,7 +675,7 @@
 
     async function loadSiteData() {
       try {
-        const response = await fetch(SHEET_CSV_URL, { cache: "no-store" });
+        const response = await fetch(cacheBustUrl(SHEET_CSV_URL), { cache: "no-store" });
         if (!response.ok) throw new Error(`Sheet request failed: ${response.status}`);
 
         const csv = await response.text();
@@ -624,10 +692,11 @@
           document.getElementById("mainCard"),
           document.getElementById("cardFallback"),
           document.getElementById("cardFallbackLink"),
-          cardUrl
+          cardUrl,
+          FALLBACK_CARD_IMAGE
         );
 
-        setBackground(backgroundUrl);
+        setBackground(backgroundUrl, FALLBACK_BACKGROUND_IMAGE);
         setLinkedLocation(locationText, locationLink);
 
         for (const [sheetLabel, elementId] of Object.entries(fieldMap)) {
