@@ -423,7 +423,28 @@
       <section class="action-panel guest-count-panel">
         <div class="panel-title">Royal Attendance</div>
       
-        <h2>Guest Count</h2>
+        <h2>
+          <a
+            id="guestCountTextLink"
+            href="#"
+            target="_blank"
+            rel="noopener"
+            style="
+              color: var(--ivory);
+              text-decoration: none;
+            "
+          >
+            Guest Count
+            <span
+              id="guestCount"
+              style="
+                color: var(--gold);
+              "
+            >
+              Loading…
+            </span>
+          </a>
+        </h2>
       
         <a
           id="guestCountLink"
@@ -432,37 +453,15 @@
           target="_blank"
           rel="noopener"
           style="
-            flex-direction: column;
-            gap: 8px;
-            padding: 24px 34px;
-            min-width: min(100%, 420px);
+            min-width: min(100%, 360px);
             margin: 0 auto;
-            line-height: 1.1;
           "
         >
-          <span style="
-            font-family: 'Cinzel', serif;
-            font-size: 1.15rem;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-          ">
-            View Guest List
-          </span>
-      
-          <span
-            id="guestCount"
-            class="guest-count-number"
-            style="
-              margin-top: 0;
-              color: #fff8e8;
-            "
-          >
-            Loading…
-          </span>
+          View Guest List
         </a>
       
         <p class="action-note">
-          Click to see everyone attending the celebration.
+          Click above to see everyone attending the celebration.
         </p>
       </section>
     </section>
@@ -642,14 +641,21 @@
     }
     function setGuestCount(guestCount, guestListLink) {
       const guestCountElement = document.getElementById("guestCount");
-      const guestCountLinkElement = document.getElementById("guestCountLink");
     
-      guestCountElement.textContent = guestCount || "Coming soon";
+      const guestCountLinkElement =
+        document.getElementById("guestCountLink");
+    
+      const guestCountTextLink =
+        document.getElementById("guestCountTextLink");
+    
+      guestCountElement.textContent = guestCount || "0";
     
       if (guestListLink) {
         guestCountLinkElement.href = guestListLink;
+        guestCountTextLink.href = guestListLink;
       } else {
         guestCountLinkElement.removeAttribute("href");
+        guestCountTextLink.removeAttribute("href");
       }
     }
 
