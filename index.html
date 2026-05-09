@@ -261,16 +261,6 @@
       rgba(10, 18, 15, 0.58);
     }
   
-  .guest-count-link {
-    color: var(--ivory);
-    text-decoration: none;
-  }
-  
-  .guest-count-link:hover {
-    color: var(--gold);
-    text-decoration: underline;
-    text-underline-offset: 6px;
-  }
   
   .guest-count-number {
     display: block;
@@ -432,20 +422,48 @@
       </section>
       <section class="action-panel guest-count-panel">
         <div class="panel-title">Royal Attendance</div>
-        <h2>
-          <a id="guestCountLink" class="guest-count-link" href="#" target="_blank" rel="noopener">
-            Guest Count
-            <span id="guestCount" class="guest-count-number">Loading…</span>
-          </a>
-        </h2>
-        <p class="action-note">Click the count to open the full guest list.</p>
-      </section>
-
-      <section class="action-panel rsvp-panel">
-        <div class="panel-title">Send Your Reply</div>
-        <h2>RSVP</h2>
-        <a id="rsvpButton" class="magic-button rsvp-button" href="#" target="_blank" rel="noopener">RSVP</a>
-        <p class="action-note">Kindly respond through the enchanted scroll above.</p>
+      
+        <h2>Guest Count</h2>
+      
+        <a
+          id="guestCountLink"
+          class="magic-button"
+          href="#"
+          target="_blank"
+          rel="noopener"
+          style="
+            flex-direction: column;
+            gap: 8px;
+            padding: 24px 34px;
+            min-width: min(100%, 420px);
+            margin: 0 auto;
+            line-height: 1.1;
+          "
+        >
+          <span style="
+            font-family: 'Cinzel', serif;
+            font-size: 1.15rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+          ">
+            View Guest List
+          </span>
+      
+          <span
+            id="guestCount"
+            class="guest-count-number"
+            style="
+              margin-top: 0;
+              color: #fff8e8;
+            "
+          >
+            Loading…
+          </span>
+        </a>
+      
+        <p class="action-note">
+          Click to see everyone attending the celebration.
+        </p>
       </section>
     </section>
   </main>
