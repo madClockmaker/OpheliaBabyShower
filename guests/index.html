@@ -262,6 +262,65 @@
       text-align: center;
     }
 
+    .maybe-section {
+      margin-top: 30px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(78, 45, 18, 0.26);
+    }
+
+    .maybe-top {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 18px;
+    }
+
+    .maybe-count-box {
+      min-width: min(100%, 260px);
+      padding: 12px 16px 11px;
+      border-radius: 18px;
+      text-align: center;
+      color: var(--ink);
+      border: 1px solid rgba(91, 55, 24, 0.28);
+      background: rgba(255, 241, 197, 0.34);
+      box-shadow: inset 0 0 20px rgba(111, 68, 29, 0.09);
+    }
+
+    .maybe-count-label {
+      font-family: "Cinzel", serif;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--ink-soft);
+    }
+
+    .maybe-count-number {
+      display: block;
+      font-family: "Cinzel", serif;
+      font-size: clamp(1.65rem, 4.8vw, 2.7rem);
+      line-height: 1;
+      color: #7b461b;
+      margin-top: 4px;
+    }
+
+    .maybe-heading {
+      margin: 0 0 12px;
+      font-family: "Uncial Antiqua", "Cinzel", serif;
+      font-size: clamp(1.9rem, 5vw, 3rem);
+      line-height: 1;
+      text-align: center;
+      color: var(--ink);
+      font-weight: 400;
+      text-shadow: 0 1px 0 rgba(255, 241, 195, 0.62);
+    }
+
+    .maybe-note {
+      margin: 0 0 16px;
+      font-size: clamp(1rem, 2vw, 1.18rem);
+      color: var(--ink-soft);
+      text-align: center;
+    }
+
     .guest-list {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -418,6 +477,18 @@
 
           <p id="statusNote" class="status-note">Loading the royal roll call…</p>
           <ul id="guestList" class="guest-list"></ul>
+
+          <section class="maybe-section" aria-labelledby="maybeHeading">
+            <div class="maybe-top">
+              <div class="maybe-count-box" aria-live="polite">
+                <div class="maybe-count-label">Maybe Guests</div>
+                <span id="maybeGuestCount" class="maybe-count-number">…</span>
+              </div>
+            </div>
+            <h3 id="maybeHeading" class="maybe-heading">Maybe</h3>
+            <p id="maybeStatusNote" class="maybe-note">Loading the maybe list…</p>
+            <ul id="maybeGuestList" class="guest-list"></ul>
+          </section>
         </div>
       </div>
     </section>
@@ -624,17 +695,24 @@
       return Number.isFinite(number) && number > 0;
     }
 
-    function getGuestEntries(rows) {
-      const guestCountHeader = findCell(rows, "Number of guests") || findCell(rows, "Number of Guests");
+    function getGuestEntries(rows, options = {}) {
+      const {
+        countColumnLabels = ["Number of guests", "Number of Guests"],
+        missingColumnMessage = "Could not find the required guest list columns: Number of guests and Guest Name."
+      } = options;
+
+      const countHeader = countColumnLabels
+        .map(label => findCell(rows, label))
+        .find(Boolean);
       const guestNameHeader = findCell(rows, "Guest Name");
       const additionalGuestsHeader = findCell(rows, "Additional Guests");
 
-      if (!guestCountHeader || !guestNameHeader) {
-        throw new Error("Could not find the required guest list columns: Number of guests and Guest Name.");
+      if (!countHeader || !guestNameHeader) {
+        throw new Error(missingColumnMessage);
       }
 
       const startRow = Math.max(
-        guestCountHeader.rowIndex,
+        countHeader.rowIndex,
         guestNameHeader.rowIndex,
         additionalGuestsHeader ? additionalGuestsHeader.rowIndex : guestNameHeader.rowIndex
       ) + 1;
@@ -644,7 +722,7 @@
 
       for (let rowIndex = startRow; rowIndex < endRow; rowIndex++) {
         const row = rows[rowIndex] || [];
-        const responseGuestCount = row[guestCountHeader.colIndex];
+        const responseGuestCount = row[countHeader.colIndex];
 
         if (!hasValidGuestCount(responseGuestCount)) continue;
 
@@ -663,16 +741,23 @@
       return guests;
     }
 
-    function renderGuestList(guests) {
-      const list = document.getElementById("guestList");
-      const status = document.getElementById("statusNote");
+    function renderGuestList(guests, options = {}) {
+      const {
+        listId = "guestList",
+        statusId = "statusNote",
+        emptyStatus = "No guests marked Yes yet.",
+        emptyMessage = "The guest list will appear here once RSVPs come in."
+      } = options;
+
+      const list = document.getElementById(listId);
+      const status = document.getElementById(statusId);
       list.textContent = "";
 
       if (!guests.length) {
-        status.textContent = "No guests marked Yes yet.";
+        status.textContent = emptyStatus;
         const empty = document.createElement("li");
         empty.className = "empty-message";
-        empty.textContent = "The guest list will appear here once RSVPs come in.";
+        empty.textContent = emptyMessage;
         list.appendChild(empty);
         return;
       }
@@ -735,10 +820,12 @@
       const rsvpUrl = getValueToRight(rows, "RSVP link");
       const homeUrl = getValueToRight(rows, "Home link");
       const guestCount = getValueToRight(rows, "Guest Count");
+      const maybeGuestCount = getValueToRight(rows, "Maybe  Guests") || getValueToRight(rows, "Maybe Guests");
       const registryLinks = getRegistryLinks(rows, 5);
 
       setBackground(backgroundUrl, FALLBACK_BACKGROUND_IMAGE);
       document.getElementById("guestCount").textContent = guestCount || "—";
+      document.getElementById("maybeGuestCount").textContent = maybeGuestCount || "—";
       createRegistryButtons(registryLinks);
 
       const rsvpButton = document.getElementById("rsvpButton");
@@ -764,7 +851,18 @@
       const csv = await response.text();
       const rows = parseCsv(csv);
       const guests = getGuestEntries(rows);
+      const maybeGuests = getGuestEntries(rows, {
+        countColumnLabels: ["Maybe"],
+        missingColumnMessage: "Could not find the required maybe list columns: Maybe and Guest Name."
+      });
+
       renderGuestList(guests);
+      renderGuestList(maybeGuests, {
+        listId: "maybeGuestList",
+        statusId: "maybeStatusNote",
+        emptyStatus: "No guests marked Maybe yet.",
+        emptyMessage: "Maybe guests will appear here once RSVPs come in."
+      });
     }
 
     async function loadPageData() {
@@ -776,6 +874,7 @@
         console.error(error);
         document.getElementById("statusNote").textContent = "Unable to load the guest list. Please check that the Google Sheet tabs are published to the web as CSV.";
         document.getElementById("guestCount").textContent = "—";
+        document.getElementById("maybeGuestCount").textContent = "—";
         createRegistryButtons([]);
       }
     }
