@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guest List | Ophelia Arwen Feblowitz Baby Shower</title>
+
+  <!-- Medieval / storybook-style Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Uncial+Antiqua&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --gold: #d8b86a;
+      --deep-gold: #8e6e2d;
+      --ivory: #fff8e8;
+      --green: #20372d;
+      --sage: #8fa58c;
+      --rose: #b77a85;
+      --shadow: rgba(0, 0, 0, 0.45);
+      --ink: #3b2618;
+      --ink-soft: rgba(59, 38, 24, 0.78);
+      --parchment: #ead9ad;
+      --parchment-light: #fff1c8;
+      --parchment-dark: #b78b51;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      color: var(--ivory);
+      background: #111b17;
+    }
+
+    body {
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image:
+        linear-gradient(rgba(10, 20, 16, 0.55), rgba(10, 20, 16, 0.82)),
+        var(--site-background, radial-gradient(circle at top, #425946, #111b17 70%));
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(255, 231, 170, 0.18), transparent 28%),
+        radial-gradient(circle at 80% 10%, rgba(183, 122, 133, 0.13), transparent 26%),
+        radial-gradient(circle at 50% 95%, rgba(143, 165, 140, 0.15), transparent 32%);
+      z-index: 0;
+    }
+
+    .sparkles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .sparkle {
+      position: absolute;
+      top: -10vh;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: rgba(255, 232, 174, 0.86);
+      box-shadow: 0 0 12px rgba(255, 236, 184, 0.95);
+      animation-name: fall, shimmer;
+      animation-timing-function: linear, ease-in-out;
+      animation-iteration-count: infinite;
+    }
+
+    @keyframes fall {
+      from { transform: translate3d(0, -12vh, 0); }
+      to { transform: translate3d(var(--drift), 112vh, 0); }
+    }
+
+    @keyframes shimmer {
+      0%, 100% { opacity: 0.15; filter: blur(0px); }
+      45% { opacity: 0.95; filter: blur(0.5px); }
+      70% { opacity: 0.35; }
+    }
+
+    .page {
+      position: relative;
+      z-index: 2;
+      width: min(980px, calc(100% - 36px));
+      margin: 0 auto;
+      padding: 42px 0 54px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+      text-shadow: 0 4px 18px var(--shadow);
+    }
+
+    .eyebrow {
+      font-family: "Cinzel", serif;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      font-size: clamp(0.75rem, 1.5vw, 0.98rem);
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: "Uncial Antiqua", "Cinzel", serif;
+      font-size: clamp(2.8rem, 8vw, 6rem);
+      line-height: 0.94;
+      color: var(--ivory);
+      font-weight: 400;
+    }
+
+    .subtitle {
+      margin: 12px auto 0;
+      max-width: 780px;
+      font-size: clamp(1.08rem, 2.4vw, 1.55rem);
+      color: rgba(255, 248, 232, 0.88);
+    }
+
+    .ornament {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 22px auto 0;
+      max-width: 520px;
+      color: rgba(216, 184, 106, 0.78);
+    }
+
+    .ornament::before,
+    .ornament::after {
+      content: "";
+      height: 1px;
+      flex: 1;
+      background: linear-gradient(90deg, transparent, rgba(216, 184, 106, 0.66), transparent);
+    }
+
+    .parchment-shell {
+      position: relative;
+      border-radius: 34px;
+      padding: clamp(18px, 3vw, 34px);
+      border: 1px solid rgba(216, 184, 106, 0.66);
+      background:
+        linear-gradient(135deg, rgba(255, 248, 232, 0.14), rgba(32, 55, 45, 0.42)),
+        rgba(10, 18, 15, 0.48);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45), inset 0 0 42px rgba(255, 244, 202, 0.035);
+      backdrop-filter: blur(10px);
+    }
+
+    .parchment {
+      position: relative;
+      overflow: hidden;
+      border-radius: 26px;
+      min-height: 520px;
+      padding: clamp(26px, 5vw, 58px);
+      color: var(--ink);
+      border: 1px solid rgba(90, 54, 22, 0.28);
+      background:
+        radial-gradient(circle at 12% 15%, rgba(255, 247, 214, 0.86), transparent 22%),
+        radial-gradient(circle at 87% 5%, rgba(141, 83, 36, 0.2), transparent 22%),
+        radial-gradient(circle at 80% 86%, rgba(88, 43, 20, 0.16), transparent 30%),
+        linear-gradient(135deg, rgba(255, 244, 199, 0.98), rgba(224, 198, 134, 0.98) 52%, rgba(186, 140, 78, 0.92));
+      box-shadow:
+        inset 0 0 50px rgba(93, 50, 21, 0.35),
+        inset 0 0 0 10px rgba(120, 73, 30, 0.08),
+        0 18px 46px rgba(0, 0, 0, 0.42);
+    }
+
+    .parchment::before {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border-radius: 20px;
+      pointer-events: none;
+      border: 2px solid rgba(96, 56, 20, 0.25);
+      box-shadow: inset 0 0 0 1px rgba(255, 244, 196, 0.32);
+    }
+
+    .parchment::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.22;
+      background-image:
+        linear-gradient(90deg, transparent 0 97%, rgba(79, 42, 17, 0.15) 100%),
+        linear-gradient(0deg, transparent 0 97%, rgba(79, 42, 17, 0.13) 100%);
+      background-size: 31px 31px, 29px 29px;
+      mix-blend-mode: multiply;
+    }
+
+    .parchment-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .parchment-top {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: start;
+      border-bottom: 1px solid rgba(78, 45, 18, 0.28);
+      padding-bottom: 18px;
+      margin-bottom: 22px;
+    }
+
+    .parchment-title {
+      margin: 0;
+      font-family: "Uncial Antiqua", "Cinzel", serif;
+      font-size: clamp(3rem, 8vw, 5.8rem);
+      line-height: 0.95;
+      color: var(--ink);
+      text-shadow: 0 1px 0 rgba(255, 241, 195, 0.72);
+      font-weight: 400;
+    }
+
+    .guest-count-box {
+      min-width: 154px;
+      padding: 14px 16px 12px;
+      border-radius: 18px;
+      text-align: center;
+      color: var(--ink);
+      border: 1px solid rgba(91, 55, 24, 0.34);
+      background: rgba(255, 241, 197, 0.42);
+      box-shadow: inset 0 0 20px rgba(111, 68, 29, 0.12);
+    }
+
+    .guest-count-label {
+      font-family: "Cinzel", serif;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--ink-soft);
+    }
+
+    .guest-count-number {
+      display: block;
+      font-family: "Cinzel", serif;
+      font-size: clamp(2rem, 6vw, 3.6rem);
+      line-height: 1;
+      color: #7b461b;
+      margin-top: 4px;
+    }
+
+    .status-note {
+      margin: 0 0 18px;
+      font-size: clamp(1.05rem, 2vw, 1.25rem);
+      color: var(--ink-soft);
+      text-align: center;
+    }
+
+    .guest-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px 20px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .guest-card {
+      break-inside: avoid;
+      padding: 12px 14px 13px;
+      border-radius: 16px;
+      background: rgba(255, 243, 204, 0.32);
+      border: 1px solid rgba(92, 52, 20, 0.16);
+      box-shadow: inset 0 0 18px rgba(115, 72, 34, 0.08);
+    }
+
+    .primary-guest {
+      font-family: "Cinzel", serif;
+      font-weight: 700;
+      font-size: clamp(1.2rem, 2.7vw, 1.55rem);
+      line-height: 1.16;
+      color: #432817;
+    }
+
+    .additional-guests {
+      margin-top: 6px;
+      padding-left: 18px;
+      color: rgba(63, 39, 23, 0.82);
+      font-size: clamp(1.02rem, 2vw, 1.18rem);
+      line-height: 1.25;
+    }
+
+    .additional-guests div::before {
+      content: "❧";
+      display: inline-block;
+      margin-right: 7px;
+      color: rgba(123, 70, 27, 0.66);
+    }
+
+    .button-stack {
+      display: grid;
+      gap: 14px;
+      justify-items: center;
+      margin: 24px auto 0;
+      max-width: 760px;
+    }
+
+    .registry-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px;
+      width: 100%;
+    }
+
+    .magic-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: min(100%, 260px);
+      padding: 15px 26px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 239, 190, 0.7);
+      color: #1d241e;
+      background: linear-gradient(135deg, #fff0bd, var(--gold), #b98935);
+      text-decoration: none;
+      font-family: "Cinzel", serif;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      font-size: clamp(1rem, 2vw, 1.25rem);
+      box-shadow: 0 16px 38px rgba(0, 0, 0, 0.32);
+      transition: transform 180ms ease, filter 180ms ease, box-shadow 180ms ease;
+      user-select: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .magic-button:hover {
+      transform: translateY(-2px) scale(1.01);
+      filter: brightness(1.08);
+      box-shadow: 0 20px 46px rgba(0, 0, 0, 0.38);
+    }
+
+    .rsvp-button, .home-button {
+      min-width: min(100%, 360px);
+      padding: 18px 34px;
+      letter-spacing: 0.12em;
+      font-size: clamp(1.24rem, 3vw, 1.75rem);
+    }
+
+    .empty-message {
+      text-align: center;
+      font-size: clamp(1.15rem, 2.4vw, 1.45rem);
+      color: var(--ink-soft);
+      padding: 44px 12px;
+    }
+
+    @media (max-width: 880px) {
+      body { background-attachment: scroll; }
+
+      .page {
+        width: min(100% - 24px, 720px);
+        padding-top: 28px;
+      }
+
+      .parchment-top {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .guest-count-box {
+        width: min(100%, 260px);
+        justify-self: center;
+      }
+
+      .guest-list {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .parchment-shell { padding: 10px; border-radius: 24px; }
+      .parchment { padding: 28px 18px; border-radius: 20px; }
+      .parchment::before { inset: 9px; border-radius: 15px; }
+      .guest-card { padding: 11px 12px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="sparkles" id="sparkles" aria-hidden="true"></div>
+
+  <main class="page">
+    <header>
+      <div class="eyebrow">Ophelia Arwen Feblowitz</div>
+      <h1>Baby Shower</h1>
+      <p class="subtitle">Honored guests of the enchanted celebration</p>
+      <div class="ornament">✦ ❧ ✦</div>
+    </header>
+
+    <section class="parchment-shell">
+      <div class="parchment">
+        <div class="parchment-content">
+          <div class="parchment-top">
+            <h2 class="parchment-title">Guest List</h2>
+            <div class="guest-count-box" aria-live="polite">
+              <div class="guest-count-label">Guest Count</div>
+              <span id="guestCount" class="guest-count-number">…</span>
+            </div>
+          </div>
+
+          <p id="statusNote" class="status-note">Loading the royal roll call…</p>
+          <ul id="guestList" class="guest-list"></ul>
+        </div>
+      </div>
+    </section>
+
+    <nav class="button-stack" aria-label="Baby shower links">
+      <a id="rsvpButton" class="magic-button rsvp-button" href="#" target="_blank" rel="noopener">RSVP</a>
+      <div id="registryButtons" class="registry-buttons"></div>
+      <a id="homeButton" class="magic-button home-button" href="#">Home</a>
+    </nav>
+  </main>
+
+  <script>
+    // WebInfo tab. Used for background image, RSVP link, registry links, guest count, and home link.
+    const WEBINFO_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTq6ndKZ6FPdg9MYoijFW3J9cC76rXblQzzql6rU1zAMLE6Lpj8nBrOjiiJPCIxMjTWet2H2MdbK8WU/pub?gid=0&single=true&output=csv";
+
+    // Form Responses 1 tab. Used for RSVP names.
+    const GUESTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTq6ndKZ6FPdg9MYoijFW3J9cC76rXblQzzql6rU1zAMLE6Lpj8nBrOjiiJPCIxMjTWet2H2MdbK8WU/pub?gid=96009902&single=true&output=csv";
+
+    const FALLBACK_BACKGROUND_IMAGE = "";
+    const MAX_RESPONSE_ROWS = 200;
+
+    function normalize(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, " ");
+    }
+
+    function cacheBustUrl(url) {
+      if (!url || url.startsWith("data:")) return url;
+      const separator = url.includes("?") ? "&" : "?";
+      return `${url}${separator}v=${Date.now()}`;
+    }
+
+    function parseCsv(text) {
+      const rows = [];
+      let row = [];
+      let cell = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const next = text[i + 1];
+
+        if (char === '"' && inQuotes && next === '"') {
+          cell += '"';
+          i++;
+        } else if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === "," && !inQuotes) {
+          row.push(cell);
+          cell = "";
+        } else if ((char === "\n" || char === "\r") && !inQuotes) {
+          if (char === "\r" && next === "\n") i++;
+          row.push(cell);
+          rows.push(row);
+          row = [];
+          cell = "";
+        } else {
+          cell += char;
+        }
+      }
+
+      if (cell.length || row.length) {
+        row.push(cell);
+        rows.push(row);
+      }
+
+      return rows.filter(r => r.some(c => String(c).trim() !== ""));
+    }
+
+    function findCell(rows, label) {
+      const target = normalize(label);
+
+      for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+        const row = rows[rowIndex];
+        for (let colIndex = 0; colIndex < row.length; colIndex++) {
+          if (normalize(row[colIndex]) === target) {
+            return { row, rowIndex, colIndex };
+          }
+        }
+      }
+
+      return null;
+    }
+
+    function getValueToRight(rows, label) {
+      const match = findCell(rows, label);
+      if (!match) return "";
+      return (match.row[match.colIndex + 1] || "").trim();
+    }
+
+    function getRegistryLinks(rows, maxLinks = 5) {
+      const match = findCell(rows, "Registries");
+      if (!match) return [];
+
+      return match.row
+        .slice(match.colIndex + 1, match.colIndex + 1 + maxLinks)
+        .map(value => String(value || "").trim())
+        .filter(value => value.length > 0);
+    }
+
+    function makeRegistryButtonText(url) {
+      const lower = url.toLowerCase();
+
+      if (lower.includes("etsy")) return "Etsy Registry";
+      if (lower.includes("amazon")) return "Amazon Registry";
+
+      try {
+        const parsed = new URL(url);
+        const host = parsed.hostname.replace(/^www\./i, "");
+        const siteName = host.split(".")[0] || "Gift";
+        return `${siteName.charAt(0).toUpperCase()}${siteName.slice(1)} Registry`;
+      } catch (error) {
+        const match = url.match(/www\.([^./]+)\.com/i) || url.match(/https?:\/\/([^./]+)\./i);
+        const siteName = match ? match[1] : "Gift";
+        return `${siteName.charAt(0).toUpperCase()}${siteName.slice(1)} Registry`;
+      }
+    }
+
+    function preloadImage(url, options = {}) {
+      const { retries = 3, delay = 900, useCacheBust = true } = options;
+
+      return new Promise((resolve, reject) => {
+        let attempt = 0;
+
+        const tryLoad = () => {
+          const image = new Image();
+          const src = attempt > 0 && useCacheBust ? cacheBustUrl(url) : url;
+
+          image.onload = () => resolve(src);
+          image.onerror = () => {
+            attempt++;
+            if (attempt <= retries) {
+              setTimeout(tryLoad, delay * attempt);
+            } else {
+              reject(new Error(`Image failed to load after ${retries + 1} attempts: ${url}`));
+            }
+          };
+
+          image.src = src;
+        };
+
+        tryLoad();
+      });
+    }
+
+    async function setBackground(primaryUrl, fallbackUrl = "") {
+      const urlsToTry = [primaryUrl, fallbackUrl].filter(Boolean);
+
+      for (const url of urlsToTry) {
+        try {
+          const loadedUrl = await preloadImage(url, { retries: 4, delay: 800, useCacheBust: true });
+          document.body.style.setProperty("--site-background", `url("${loadedUrl}")`);
+          return;
+        } catch (error) {
+          console.warn(error.message);
+        }
+      }
+
+      console.warn("Background image could not be embedded. The default background gradient will be used.");
+    }
+
+    function createRegistryButtons(links) {
+      const container = document.getElementById("registryButtons");
+      container.textContent = "";
+
+      if (!links.length) {
+        const button = document.createElement("span");
+        button.className = "magic-button";
+        button.textContent = "Registries Coming Soon";
+        container.appendChild(button);
+        return;
+      }
+
+      for (const linkUrl of links) {
+        const button = document.createElement("a");
+        button.className = "magic-button";
+        button.href = linkUrl;
+        button.target = "_blank";
+        button.rel = "noopener";
+        button.textContent = makeRegistryButtonText(linkUrl);
+        container.appendChild(button);
+      }
+    }
+
+    function splitAdditionalGuests(value) {
+      const text = String(value || "").trim();
+      if (!text) return [];
+
+      const delimiter = text.includes("\n") ? /\r?\n/ : /\s*(?:;|,|\band\b|&)\s*/i;
+
+      return text
+        .split(delimiter)
+        .map(name => name.trim())
+        .filter(Boolean);
+    }
+
+    function hasValidGuestCount(value) {
+      const clean = String(value || "").trim();
+      if (!clean) return false;
+
+      const number = parseFloat(clean.replace(/[^0-9.-]/g, ""));
+      return Number.isFinite(number) && number > 0;
+    }
+
+    function getGuestEntries(rows) {
+      const guestCountHeader = findCell(rows, "Number of guests") || findCell(rows, "Number of Guests");
+      const guestNameHeader = findCell(rows, "Guest Name");
+      const additionalGuestsHeader = findCell(rows, "Additional Guests");
+
+      if (!guestCountHeader || !guestNameHeader) {
+        throw new Error("Could not find the required guest list columns: Number of guests and Guest Name.");
+      }
+
+      const startRow = Math.max(
+        guestCountHeader.rowIndex,
+        guestNameHeader.rowIndex,
+        additionalGuestsHeader ? additionalGuestsHeader.rowIndex : guestNameHeader.rowIndex
+      ) + 1;
+
+      const endRow = Math.min(rows.length, startRow + MAX_RESPONSE_ROWS);
+      const guests = [];
+
+      for (let rowIndex = startRow; rowIndex < endRow; rowIndex++) {
+        const row = rows[rowIndex] || [];
+        const responseGuestCount = row[guestCountHeader.colIndex];
+
+        if (!hasValidGuestCount(responseGuestCount)) continue;
+
+        const primaryName = String(row[guestNameHeader.colIndex] || "").trim();
+        const additionalText = additionalGuestsHeader ? row[additionalGuestsHeader.colIndex] : "";
+        const additionalGuests = splitAdditionalGuests(additionalText);
+
+        if (!primaryName && !additionalGuests.length) continue;
+
+        guests.push({
+          primaryName: primaryName || "Unnamed Guest",
+          additionalGuests
+        });
+      }
+
+      return guests;
+    }
+
+    function renderGuestList(guests) {
+      const list = document.getElementById("guestList");
+      const status = document.getElementById("statusNote");
+      list.textContent = "";
+
+      if (!guests.length) {
+        status.textContent = "No guests marked Yes yet.";
+        const empty = document.createElement("li");
+        empty.className = "empty-message";
+        empty.textContent = "The guest list will appear here once RSVPs come in.";
+        list.appendChild(empty);
+        return;
+      }
+
+      status.textContent = "";
+
+      for (const guest of guests) {
+        const item = document.createElement("li");
+        item.className = "guest-card";
+
+        const primary = document.createElement("div");
+        primary.className = "primary-guest";
+        primary.textContent = guest.primaryName;
+        item.appendChild(primary);
+
+        if (guest.additionalGuests.length) {
+          const additional = document.createElement("div");
+          additional.className = "additional-guests";
+
+          for (const name of guest.additionalGuests) {
+            const nameElement = document.createElement("div");
+            nameElement.textContent = name;
+            additional.appendChild(nameElement);
+          }
+
+          item.appendChild(additional);
+        }
+
+        list.appendChild(item);
+      }
+    }
+
+    function createSparkles(count = 55) {
+      const container = document.getElementById("sparkles");
+      const fragment = document.createDocumentFragment();
+
+      for (let i = 0; i < count; i++) {
+        const sparkle = document.createElement("span");
+        sparkle.className = "sparkle";
+        sparkle.style.left = `${Math.random() * 100}%`;
+        sparkle.style.width = `${2 + Math.random() * 4}px`;
+        sparkle.style.height = sparkle.style.width;
+        sparkle.style.setProperty("--drift", `${-45 + Math.random() * 90}px`);
+        sparkle.style.animationDuration = `${12 + Math.random() * 18}s, ${2.5 + Math.random() * 4}s`;
+        sparkle.style.animationDelay = `${Math.random() * -28}s, ${Math.random() * -5}s`;
+        fragment.appendChild(sparkle);
+      }
+
+      container.appendChild(fragment);
+    }
+
+    async function loadWebInfo() {
+      const response = await fetch(cacheBustUrl(WEBINFO_CSV_URL), { cache: "no-store" });
+      if (!response.ok) throw new Error(`WebInfo sheet request failed: ${response.status}`);
+
+      const csv = await response.text();
+      const rows = parseCsv(csv);
+
+      const backgroundUrl = getValueToRight(rows, "Link to Background");
+      const rsvpUrl = getValueToRight(rows, "RSVP link");
+      const homeUrl = getValueToRight(rows, "Home link");
+      const guestCount = getValueToRight(rows, "Guest Count");
+      const registryLinks = getRegistryLinks(rows, 5);
+
+      setBackground(backgroundUrl, FALLBACK_BACKGROUND_IMAGE);
+      document.getElementById("guestCount").textContent = guestCount || "—";
+      createRegistryButtons(registryLinks);
+
+      const rsvpButton = document.getElementById("rsvpButton");
+      if (rsvpUrl) {
+        rsvpButton.href = rsvpUrl;
+      } else {
+        rsvpButton.removeAttribute("href");
+        rsvpButton.textContent = "RSVP Link Coming Soon";
+      }
+
+      const homeButton = document.getElementById("homeButton");
+      if (homeUrl) {
+        homeButton.href = homeUrl;
+      } else {
+        homeButton.href = "./";
+      }
+    }
+
+    async function loadGuestList() {
+      const response = await fetch(cacheBustUrl(GUESTS_CSV_URL), { cache: "no-store" });
+      if (!response.ok) throw new Error(`Guest list sheet request failed: ${response.status}`);
+
+      const csv = await response.text();
+      const rows = parseCsv(csv);
+      const guests = getGuestEntries(rows);
+      renderGuestList(guests);
+    }
+
+    async function loadPageData() {
+      createSparkles();
+
+      try {
+        await Promise.all([loadWebInfo(), loadGuestList()]);
+      } catch (error) {
+        console.error(error);
+        document.getElementById("statusNote").textContent = "Unable to load the guest list. Please check that the Google Sheet tabs are published to the web as CSV.";
+        document.getElementById("guestCount").textContent = "—";
+        createRegistryButtons([]);
+      }
+    }
+
+    loadPageData();
+  </script>
+</body>
+</html>
