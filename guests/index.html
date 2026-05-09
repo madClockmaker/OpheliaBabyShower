@@ -329,6 +329,31 @@
       padding: 0;
       list-style: none;
     }
+    .maybe-header-inline {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    
+    .maybe-count-inline {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 16px;
+      background: rgba(255, 241, 197, 0.32);
+      border: 1px solid rgba(91, 55, 24, 0.24);
+    }
+    
+    .maybe-count-number {
+      font-family: "Cinzel", serif;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      line-height: 1;
+      color: #7b461b;
+    }
 
     .guest-card {
       break-inside: avoid;
@@ -478,17 +503,19 @@
           <p id="statusNote" class="status-note">Loading the royal roll call…</p>
           <ul id="guestList" class="guest-list"></ul>
 
-          <section class="maybe-section" aria-labelledby="maybeHeading">
-            <div class="maybe-top">
-              <div class="maybe-count-box" aria-live="polite">
-                <div class="maybe-count-label">Maybe Guests</div>
+          <div class="maybe-section">
+            <div class="maybe-header-inline">
+              <h2 class="parchment-title maybe-title">Maybe</h2>
+          
+              <div class="maybe-count-inline">
+                <span class="guest-count-label">Guests</span>
                 <span id="maybeGuestCount" class="maybe-count-number">…</span>
               </div>
             </div>
-            <h3 id="maybeHeading" class="maybe-heading">Maybe</h3>
-            <p id="maybeStatusNote" class="maybe-note">Loading the maybe list…</p>
+          
+            <p id="maybeStatusNote" class="status-note maybe-status"></p>
             <ul id="maybeGuestList" class="guest-list"></ul>
-          </section>
+          </div>
         </div>
       </div>
     </section>
