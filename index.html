@@ -244,13 +244,51 @@
     .registry-panel {
       margin-top: 6px;
     }
+    <section class="action-panel guest-count-panel">
+      <div class="panel-title">Royal Attendance</div>
+      <h2>
+        <a id="guestCountLink" class="guest-count-link" href="#" target="_blank" rel="noopener">
+          Guest Count
+          <span id="guestCount" class="guest-count-number">Loading…</span>
+        </a>
+      </h2>
+      <p class="action-note">Click the count to open the full guest list.</p>
+    </section>
 
     .rsvp-panel {
+      
       margin-top: 0;
       background:
         linear-gradient(135deg, rgba(32, 55, 45, 0.68), rgba(112, 53, 67, 0.52)),
         rgba(10, 18, 15, 0.58);
     }
+
+  .guest-count-panel {
+    margin-top: 0;
+    background:
+      linear-gradient(135deg, rgba(143, 165, 140, 0.58), rgba(32, 55, 45, 0.72)),
+      rgba(10, 18, 15, 0.58);
+    }
+  
+  .guest-count-link {
+    color: var(--ivory);
+    text-decoration: none;
+  }
+  
+  .guest-count-link:hover {
+    color: var(--gold);
+    text-decoration: underline;
+    text-underline-offset: 6px;
+  }
+  
+  .guest-count-number {
+    display: block;
+    font-family: "Cinzel", serif;
+    font-size: clamp(2.4rem, 6vw, 4.5rem);
+    color: var(--gold);
+    line-height: 1;
+    margin-top: 4px;
+  }
 
     .registry-buttons {
       display: flex;
@@ -583,6 +621,18 @@
         tryLoad();
       });
     }
+    function setGuestCount(guestCount, guestListLink) {
+      const guestCountElement = document.getElementById("guestCount");
+      const guestCountLinkElement = document.getElementById("guestCountLink");
+    
+      guestCountElement.textContent = guestCount || "Coming soon";
+    
+      if (guestListLink) {
+        guestCountLinkElement.href = guestListLink;
+      } else {
+        guestCountLinkElement.removeAttribute("href");
+      }
+    }
 
     async function setEmbeddableImage(imgElement, fallbackElement, fallbackLink, primaryUrl, fallbackUrl = "") {
       const urlsToTry = [primaryUrl, fallbackUrl].filter(Boolean);
@@ -688,6 +738,8 @@
         const locationText = getValueToRight(rows, "Location");
         const locationLink = getValueToRight(rows, "Location link");
         const registryLinks = getRegistryLinks(rows, 5);
+        const guestCount = getValueToRight(rows, "Guest Count");
+        const guestListLink = getValueToRight(rows, "Guest list link");
 
         setEmbeddableImage(
           document.getElementById("mainCard"),
@@ -699,6 +751,7 @@
 
         setBackground(backgroundUrl, FALLBACK_BACKGROUND_IMAGE);
         setLinkedLocation(locationText, locationLink);
+        setGuestCount(guestCount, guestListLink);
 
         for (const [sheetLabel, elementId] of Object.entries(fieldMap)) {
           if (sheetLabel !== "location") {
