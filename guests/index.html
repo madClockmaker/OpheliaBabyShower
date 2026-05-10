@@ -226,6 +226,14 @@
       font-weight: 400;
     }
 
+    .guest-count-pair {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      align-items: stretch;
+      flex-wrap: wrap;
+    }
+
     .guest-count-box {
       min-width: 154px;
       padding: 14px 16px 12px;
@@ -253,6 +261,17 @@
       line-height: 1;
       color: #7b461b;
       margin-top: 4px;
+    }
+
+    .guest-count-type {
+      display: block;
+      margin-top: 6px;
+      font-family: "Cinzel", serif;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--ink-soft);
     }
 
     .status-note {
@@ -447,6 +466,10 @@
         text-align: center;
       }
 
+      .guest-count-pair {
+        justify-content: center;
+      }
+
       .guest-count-box {
         width: min(100%, 260px);
         justify-self: center;
@@ -482,9 +505,17 @@
         <div class="parchment-content">
           <div class="parchment-top">
             <h2 class="parchment-title">Guest List</h2>
-            <div class="guest-count-box" aria-live="polite">
-              <div class="guest-count-label">Guest Count</div>
-              <span id="guestCount" class="guest-count-number">…</span>
+            <div class="guest-count-pair" aria-live="polite">
+              <div class="guest-count-box">
+                <div class="guest-count-label">Guest Count</div>
+                <span id="guestCount" class="guest-count-number">…</span>
+                <span class="guest-count-type">Confirmed</span>
+              </div>
+              <div class="guest-count-box">
+                <div class="guest-count-label">Guest Count</div>
+                <span id="possibleGuestCount" class="guest-count-number">…</span>
+                <span class="guest-count-type">Possible</span>
+              </div>
             </div>
           </div>
 
@@ -710,6 +741,14 @@
       return Number.isFinite(number) && number > 0;
     }
 
+    function getNumericCount(value) {
+      const clean = String(value || "").trim();
+      if (!clean) return 0;
+
+      const number = parseFloat(clean.replace(/[^0-9.-]/g, ""));
+      return Number.isFinite(number) ? number : 0;
+    }
+
     function getGuestEntries(rows, options = {}) {
       const {
         countColumnLabels = ["Number of guests", "Number of Guests"],
@@ -839,7 +878,12 @@
       const registryLinks = getRegistryLinks(rows, 5);
 
       setBackground(backgroundUrl, FALLBACK_BACKGROUND_IMAGE);
+      const confirmedCountNumber = getNumericCount(guestCount);
+      const maybeCountNumber = getNumericCount(maybeGuestCount);
+      const possibleGuestCount = confirmedCountNumber + maybeCountNumber;
+
       document.getElementById("guestCount").textContent = guestCount || "—";
+      document.getElementById("possibleGuestCount").textContent = possibleGuestCount > 0 ? possibleGuestCount : "—";
       document.getElementById("maybeGuestCount").textContent = maybeGuestCount || "—";
       createRegistryButtons(registryLinks);
 
@@ -889,6 +933,7 @@
         console.error(error);
         document.getElementById("statusNote").textContent = "Unable to load the guest list. Please check that the Google Sheet tabs are published to the web as CSV.";
         document.getElementById("guestCount").textContent = "—";
+        document.getElementById("possibleGuestCount").textContent = "—";
         document.getElementById("maybeGuestCount").textContent = "—";
         createRegistryButtons([]);
       }
