@@ -737,6 +737,13 @@
       const clean = String(value || "").trim();
       if (!clean) return false;
 
+      // Accept either a real number OR common RSVP wording. This keeps the guest
+      // list working if the Form column changed from numeric counts to Yes/Maybe text.
+      const normalized = normalize(clean);
+      if (["yes", "y", "attending", "i'll be there", "ill be there", "can attend", "maybe"].includes(normalized)) {
+        return true;
+      }
+
       const number = parseFloat(clean.replace(/[^0-9.-]/g, ""));
       return Number.isFinite(number) && number > 0;
     }
@@ -745,24 +752,55 @@
       const clean = String(value || "").trim();
       if (!clean) return 0;
 
+      const normalized = normalize(clean);
+      if (["yes", "y", "attending", "i'll be there", "ill be there", "can attend", "maybe"].includes(normalized)) {
+        return 1;
+      }
+
       const number = parseFloat(clean.replace(/[^0-9.-]/g, ""));
       return Number.isFinite(number) ? number : 0;
+    }
+
+    function findFirstCell(rows, labels) {
+      return labels
+        .map(label => findCell(rows, label))
+        .find(Boolean) || null;
     }
 
     function getGuestEntries(rows, options = {}) {
       const {
         countColumnLabels = ["Number of guests", "Number of Guests"],
-        missingColumnMessage = "Could not find the required guest list columns: Number of guests and Guest Name."
+        guestNameLabels = [
+          "Guest Name",
+          "Name",
+          "Your Name",
+          "Full Name",
+          "Parent/Guest Name",
+          "Primary Guest",
+          "Who is RSVPing?",
+          "Who is RSVPing",
+          "Your full name"
+        ],
+        additionalGuestLabels = [
+          "Additional Guests",
+          "Additional Guest Names",
+          "Guest Names",
+          "Names of Additional Guests",
+          "Names of guests",
+          "Names of Guests",
+          "Who are you bringing?",
+          "Who are you bringing"
+        ],
+        missingColumnMessage = "Could not find the required guest list columns."
       } = options;
 
-      const countHeader = countColumnLabels
-        .map(label => findCell(rows, label))
-        .find(Boolean);
-      const guestNameHeader = findCell(rows, "Guest Name");
-      const additionalGuestsHeader = findCell(rows, "Additional Guests");
+      const countHeader = findFirstCell(rows, countColumnLabels);
+      const guestNameHeader = findFirstCell(rows, guestNameLabels);
+      const additionalGuestsHeader = findFirstCell(rows, additionalGuestLabels);
 
       if (!countHeader || !guestNameHeader) {
-        throw new Error(missingColumnMessage);
+        const foundHeaders = rows[0] ? rows[0].map(h => String(h || "").trim()).filter(Boolean).join(" | ") : "none";
+        throw new Error(`${missingColumnMessage} Found first-row headers: ${foundHeaders}`);
       }
 
       const startRow = Math.max(
@@ -913,7 +951,7 @@
       // Load/render confirmed guests first so a problem with the Maybe column can never
       // prevent the confirmed guest names from appearing.
       const guests = getGuestEntries(rows, {
-        countColumnLabels: ["Number of guests", "Number of Guests", "Guests", "Attending"],
+        countColumnLabels: ["Number of guests", "Number of Guests", "Guests", "Attending", "Will you be attending?", "RSVP", "Are you coming?", "Are you attending?", "Can you attend?"],
         missingColumnMessage: "Could not find the required confirmed guest list columns: Number of Guests and Guest Name."
       });
       renderGuestList(guests);
@@ -922,7 +960,7 @@
       // keep the rest of the page working and show a helpful Maybe-only message.
       try {
         const maybeGuests = getGuestEntries(rows, {
-          countColumnLabels: ["Maybe", "Maybe Guests", "Maybe  Guests"],
+          countColumnLabels: ["Maybe", "Maybe Guests", "Maybe  Guests", "Maybe?", "Tentative"],
           missingColumnMessage: "Could not find the required maybe list columns: Maybe and Guest Name."
         });
 
