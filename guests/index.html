@@ -909,19 +909,38 @@
 
       const csv = await response.text();
       const rows = parseCsv(csv);
-      const guests = getGuestEntries(rows);
-      const maybeGuests = getGuestEntries(rows, {
-        countColumnLabels: ["Maybe"],
-        missingColumnMessage: "Could not find the required maybe list columns: Maybe and Guest Name."
-      });
 
-      renderGuestList(guests);
-      renderGuestList(maybeGuests, {
-        listId: "maybeGuestList",
-        statusId: "maybeStatusNote",
-        emptyStatus: "No guests marked Maybe yet.",
-        emptyMessage: "Maybe guests will appear here once RSVPs come in."
+      // Load/render confirmed guests first so a problem with the Maybe column can never
+      // prevent the confirmed guest names from appearing.
+      const guests = getGuestEntries(rows, {
+        countColumnLabels: ["Number of guests", "Number of Guests", "Guests", "Attending"],
+        missingColumnMessage: "Could not find the required confirmed guest list columns: Number of Guests and Guest Name."
       });
+      renderGuestList(guests);
+
+      // Load Maybe guests separately. If the Maybe column is renamed or missing,
+      // keep the rest of the page working and show a helpful Maybe-only message.
+      try {
+        const maybeGuests = getGuestEntries(rows, {
+          countColumnLabels: ["Maybe", "Maybe Guests", "Maybe  Guests"],
+          missingColumnMessage: "Could not find the required maybe list columns: Maybe and Guest Name."
+        });
+
+        renderGuestList(maybeGuests, {
+          listId: "maybeGuestList",
+          statusId: "maybeStatusNote",
+          emptyStatus: "No guests marked Maybe yet.",
+          emptyMessage: "Maybe guests will appear here once RSVPs come in."
+        });
+      } catch (maybeError) {
+        console.warn(maybeError);
+        renderGuestList([], {
+          listId: "maybeGuestList",
+          statusId: "maybeStatusNote",
+          emptyStatus: "Maybe guest list could not load.",
+          emptyMessage: "Check that the Form Responses 1 tab has a column labeled Maybe."
+        });
+      }
     }
 
     async function loadPageData() {
