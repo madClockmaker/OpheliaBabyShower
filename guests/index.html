@@ -551,7 +551,10 @@
     const WEBINFO_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTq6ndKZ6FPdg9MYoijFW3J9cC76rXblQzzql6rU1zAMLE6Lpj8nBrOjiiJPCIxMjTWet2H2MdbK8WU/pub?gid=0&single=true&output=csv";
 
     // Form Responses 1 tab. Used for RSVP names.
-    const GUESTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTq6ndKZ6FPdg9MYoijFW3J9cC76rXblQzzql6rU1zAMLE6Lpj8nBrOjiiJPCIxMjTWet2H2MdbK8WU/pubhtml?gid=96009902&single=truev";
+    // IMPORTANT: the CSV link may download when opened directly. That is normal.
+    // The website fetches it as text and parses the rows.
+    const GUESTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTq6ndKZ6FPdg9MYoijFW3J9cC76rXblQzzql6rU1zAMLE6Lpj8nBrOjiiJPCIxMjTWet2H2MdbK8WU/pub?gid=96009902&single=true&output=csv";
+    const GUESTS_HTML_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTq6ndKZ6FPdg9MYoijFW3J9cC76rXblQzzql6rU1zAMLE6Lpj8nBrOjiiJPCIxMjTWet2H2MdbK8WU/pubhtml?gid=96009902&single=true";
 
     const FALLBACK_BACKGROUND_IMAGE = "";
     const MAX_RESPONSE_ROWS = 200;
@@ -604,6 +607,57 @@
       }
 
       return rows.filter(r => r.some(c => String(c).trim() !== ""));
+    }
+
+
+    function parsePublishedHtmlTable(html) {
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const table = doc.querySelector("table.waffle") || doc.querySelector("table");
+      if (!table) return [];
+
+      const rows = [];
+      for (const tr of table.querySelectorAll("tr")) {
+        const cells = [];
+        for (const cell of tr.querySelectorAll("td, th")) {
+          // Google's published HTML includes row-number cells. Keep everything first,
+          // then remove obvious empty/number-only leading row headers below.
+          cells.push(cell.textContent.replace(/\u00a0/g, " ").trim());
+        }
+
+        while (cells.length && cells[0] === "") cells.shift();
+        if (cells.length > 1 && /^\d+$/.test(cells[0])) cells.shift();
+
+        if (cells.some(value => value.trim() !== "")) rows.push(cells);
+      }
+      return rows;
+    }
+
+    async function fetchRowsWithFallback(csvUrl, htmlUrl, labelForErrors = "sheet") {
+      const errors = [];
+
+      try {
+        const response = await fetch(cacheBustUrl(csvUrl), { cache: "no-store" });
+        if (!response.ok) throw new Error(`${labelForErrors} CSV request failed: ${response.status}`);
+        const text = await response.text();
+        const rows = parseCsv(text);
+        if (rows.length) return rows;
+        errors.push(`${labelForErrors} CSV returned no rows.`);
+      } catch (error) {
+        errors.push(error.message || String(error));
+      }
+
+      try {
+        const response = await fetch(cacheBustUrl(htmlUrl), { cache: "no-store" });
+        if (!response.ok) throw new Error(`${labelForErrors} published HTML request failed: ${response.status}`);
+        const html = await response.text();
+        const rows = parsePublishedHtmlTable(html);
+        if (rows.length) return rows;
+        errors.push(`${labelForErrors} published HTML returned no table rows.`);
+      } catch (error) {
+        errors.push(error.message || String(error));
+      }
+
+      throw new Error(`${labelForErrors} could not load. ${errors.join(" | ")}`);
     }
 
     function findCell(rows, label) {
@@ -737,13 +791,6 @@
       const clean = String(value || "").trim();
       if (!clean) return false;
 
-      // Accept either a real number OR common RSVP wording. This keeps the guest
-      // list working if the Form column changed from numeric counts to Yes/Maybe text.
-      const normalized = normalize(clean);
-      if (["yes", "y", "attending", "i'll be there", "ill be there", "can attend", "maybe"].includes(normalized)) {
-        return true;
-      }
-
       const number = parseFloat(clean.replace(/[^0-9.-]/g, ""));
       return Number.isFinite(number) && number > 0;
     }
@@ -752,55 +799,24 @@
       const clean = String(value || "").trim();
       if (!clean) return 0;
 
-      const normalized = normalize(clean);
-      if (["yes", "y", "attending", "i'll be there", "ill be there", "can attend", "maybe"].includes(normalized)) {
-        return 1;
-      }
-
       const number = parseFloat(clean.replace(/[^0-9.-]/g, ""));
       return Number.isFinite(number) ? number : 0;
-    }
-
-    function findFirstCell(rows, labels) {
-      return labels
-        .map(label => findCell(rows, label))
-        .find(Boolean) || null;
     }
 
     function getGuestEntries(rows, options = {}) {
       const {
         countColumnLabels = ["Number of guests", "Number of Guests"],
-        guestNameLabels = [
-          "Guest Name",
-          "Name",
-          "Your Name",
-          "Full Name",
-          "Parent/Guest Name",
-          "Primary Guest",
-          "Who is RSVPing?",
-          "Who is RSVPing",
-          "Your full name"
-        ],
-        additionalGuestLabels = [
-          "Additional Guests",
-          "Additional Guest Names",
-          "Guest Names",
-          "Names of Additional Guests",
-          "Names of guests",
-          "Names of Guests",
-          "Who are you bringing?",
-          "Who are you bringing"
-        ],
-        missingColumnMessage = "Could not find the required guest list columns."
+        missingColumnMessage = "Could not find the required guest list columns: Number of guests and Guest Name."
       } = options;
 
-      const countHeader = findFirstCell(rows, countColumnLabels);
-      const guestNameHeader = findFirstCell(rows, guestNameLabels);
-      const additionalGuestsHeader = findFirstCell(rows, additionalGuestLabels);
+      const countHeader = countColumnLabels
+        .map(label => findCell(rows, label))
+        .find(Boolean);
+      const guestNameHeader = ["Guest Name", "Name", "Your Name", "Full Name", "First and Last Name", "Parent/Guest Name", "Primary Guest"].map(label => findCell(rows, label)).find(Boolean);
+      const additionalGuestsHeader = ["Additional Guests", "Additional Guest", "Names of Additional Guests", "Guest Names", "Names of Guests", "Other Guests"].map(label => findCell(rows, label)).find(Boolean);
 
       if (!countHeader || !guestNameHeader) {
-        const foundHeaders = rows[0] ? rows[0].map(h => String(h || "").trim()).filter(Boolean).join(" | ") : "none";
-        throw new Error(`${missingColumnMessage} Found first-row headers: ${foundHeaders}`);
+        throw new Error(missingColumnMessage);
       }
 
       const startRow = Math.max(
@@ -942,16 +958,13 @@
     }
 
     async function loadGuestList() {
-      const response = await fetch(cacheBustUrl(GUESTS_CSV_URL), { cache: "no-store" });
-      if (!response.ok) throw new Error(`Guest list sheet request failed: ${response.status}`);
-
-      const csv = await response.text();
-      const rows = parseCsv(csv);
+      const rows = await fetchRowsWithFallback(GUESTS_CSV_URL, GUESTS_HTML_URL, "Guest list sheet");
+      console.log("Guest list rows loaded:", rows.length, rows.slice(0, 3));
 
       // Load/render confirmed guests first so a problem with the Maybe column can never
       // prevent the confirmed guest names from appearing.
       const guests = getGuestEntries(rows, {
-        countColumnLabels: ["Number of guests", "Number of Guests", "Guests", "Attending", "Will you be attending?", "RSVP", "Are you coming?", "Are you attending?", "Can you attend?"],
+        countColumnLabels: ["Number of guests", "Number of Guests", "Guests", "Attending"],
         missingColumnMessage: "Could not find the required confirmed guest list columns: Number of Guests and Guest Name."
       });
       renderGuestList(guests);
@@ -960,7 +973,7 @@
       // keep the rest of the page working and show a helpful Maybe-only message.
       try {
         const maybeGuests = getGuestEntries(rows, {
-          countColumnLabels: ["Maybe", "Maybe Guests", "Maybe  Guests", "Maybe?", "Tentative"],
+          countColumnLabels: ["Maybe", "Maybe Guests", "Maybe  Guests"],
           missingColumnMessage: "Could not find the required maybe list columns: Maybe and Guest Name."
         });
 
