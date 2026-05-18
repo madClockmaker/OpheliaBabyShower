@@ -2,10 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Guest List | Ophelia Arwen Feblowitz Baby Shower</title>
 
-  <!-- Medieval / storybook-style Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Uncial+Antiqua&display=swap" rel="stylesheet">
@@ -28,6 +27,11 @@
 
     * { box-sizing: border-box; }
 
+    html {
+      min-height: 100%;
+      -webkit-text-size-adjust: 100%;
+    }
+
     html, body {
       margin: 0;
       min-height: 100%;
@@ -38,7 +42,9 @@
 
     body {
       min-height: 100vh;
+      min-height: 100svh;
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
       background-image:
         linear-gradient(rgba(10, 20, 16, 0.55), rgba(10, 20, 16, 0.82)),
         var(--site-background, radial-gradient(circle at top, #425946, #111b17 70%));
@@ -157,6 +163,7 @@
         rgba(10, 18, 15, 0.48);
       box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45), inset 0 0 42px rgba(255, 244, 202, 0.035);
       backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
 
     .parchment {
@@ -291,7 +298,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 14px;
+      gap: 18px;
       flex-wrap: wrap;
       margin-bottom: 14px;
     }
@@ -311,7 +318,7 @@
       display: flex;
       align-items: baseline;
       gap: 8px;
-      padding: 8px 14px;
+      padding: 10px 16px;
       border-radius: 16px;
       background: rgba(255, 241, 197, 0.32);
       border: 1px solid rgba(91, 55, 24, 0.24);
@@ -319,7 +326,7 @@
 
     .maybe-count-number {
       font-family: "Cinzel", serif;
-      font-size: clamp(1.25rem, 3vw, 1.85rem);
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
       line-height: 1;
       color: #7b461b;
     }
@@ -335,31 +342,6 @@
       margin: 0;
       padding: 0;
       list-style: none;
-    }
-    .maybe-header-inline {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 18px;
-      flex-wrap: wrap;
-      margin-bottom: 14px;
-    }
-    
-    .maybe-count-inline {
-      display: flex;
-      align-items: baseline;
-      gap: 8px;
-      padding: 10px 16px;
-      border-radius: 16px;
-      background: rgba(255, 241, 197, 0.32);
-      border: 1px solid rgba(91, 55, 24, 0.24);
-    }
-    
-    .maybe-count-number {
-      font-family: "Cinzel", serif;
-      font-size: clamp(1.8rem, 4vw, 2.6rem);
-      line-height: 1;
-      color: #7b461b;
     }
 
     .guest-card {
@@ -400,6 +382,7 @@
       justify-items: center;
       margin: 24px auto 0;
       max-width: 760px;
+      min-height: 140px;
     }
 
     .registry-buttons {
@@ -415,6 +398,7 @@
       align-items: center;
       justify-content: center;
       min-width: min(100%, 260px);
+      min-height: 54px;
       padding: 15px 26px;
       border-radius: 999px;
       border: 1px solid rgba(255, 239, 190, 0.7);
@@ -439,7 +423,14 @@
       box-shadow: 0 20px 46px rgba(0, 0, 0, 0.38);
     }
 
-    .rsvp-button, .home-button {
+    .magic-button[aria-disabled="true"] {
+      opacity: 0.75;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .rsvp-button,
+    .home-button {
       min-width: min(100%, 360px);
       padding: 18px 34px;
       letter-spacing: 0.12em;
@@ -453,12 +444,53 @@
       padding: 44px 12px;
     }
 
+    /* iPhone/Safari scroll stability: composited/contained panels are less likely to
+       disappear or repaint when users scroll away and back. */
+    .page,
+    header,
+    .parchment-shell,
+    .parchment,
+    .parchment-content,
+    .guest-card,
+    .button-stack,
+    .registry-buttons,
+    .magic-button {
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .parchment-shell,
+    .parchment,
+    .guest-card,
+    .magic-button {
+      contain: paint;
+    }
+
     @media (max-width: 880px) {
+      html,
+      body {
+        min-height: 100%;
+        min-height: -webkit-fill-available;
+        overflow-x: hidden;
+      }
+
       body { background-attachment: scroll; }
+
+      .sparkles { opacity: 0.72; }
+
+      .sparkle { box-shadow: 0 0 7px rgba(255, 236, 184, 0.72); }
 
       .page {
         width: min(100% - 24px, 720px);
         padding-top: 28px;
+        padding-bottom: calc(34px + env(safe-area-inset-bottom));
+      }
+
+      .parchment-shell {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
       }
 
       .parchment-top {
@@ -478,6 +510,23 @@
       .guest-list {
         grid-template-columns: 1fr;
       }
+
+      .magic-button,
+      .rsvp-button,
+      .home-button {
+        width: 100%;
+        max-width: 420px;
+        min-width: 0 !important;
+        margin-left: auto;
+        margin-right: auto;
+        white-space: normal;
+        line-height: 1.2;
+      }
+
+      .magic-button:hover {
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+      }
     }
 
     @media (max-width: 520px) {
@@ -485,6 +534,11 @@
       .parchment { padding: 28px 18px; border-radius: 20px; }
       .parchment::before { inset: 9px; border-radius: 15px; }
       .guest-card { padding: 11px 12px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .sparkle { animation: none; opacity: 0.35; }
+      .magic-button { transition: none; }
     }
   </style>
 </head>
@@ -525,13 +579,12 @@
           <div class="maybe-section">
             <div class="maybe-header-inline">
               <h2 class="maybe-heading">Maybe</h2>
-          
               <div class="maybe-count-inline">
                 <span class="guest-count-label">Guests</span>
                 <span id="maybeGuestCount" class="maybe-count-number">…</span>
               </div>
             </div>
-          
+
             <p id="maybeStatusNote" class="status-note maybe-status"></p>
             <ul id="maybeGuestList" class="guest-list"></ul>
           </div>
@@ -540,9 +593,9 @@
     </section>
 
     <nav class="button-stack" aria-label="Baby shower links">
-      <a id="rsvpButton" class="magic-button rsvp-button" href="#" target="_blank" rel="noopener">RSVP</a>
+      <a id="rsvpButton" class="magic-button rsvp-button" target="_blank" rel="noopener" aria-disabled="true">RSVP</a>
       <div id="registryButtons" class="registry-buttons"></div>
-      <a id="homeButton" class="magic-button home-button" href="#">Home</a>
+      <a id="homeButton" class="magic-button home-button" href="../">Home</a>
     </nav>
   </main>
 
@@ -551,13 +604,25 @@
     const WEBINFO_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTq6ndKZ6FPdg9MYoijFW3J9cC76rXblQzzql6rU1zAMLE6Lpj8nBrOjiiJPCIxMjTWet2H2MdbK8WU/pub?gid=0&single=true&output=csv";
 
     // Form Responses 1 tab. Used for RSVP names.
-    // IMPORTANT: the CSV link may download when opened directly. That is normal.
-    // The website fetches it as text and parses the rows.
     const GUESTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTq6ndKZ6FPdg9MYoijFW3J9cC76rXblQzzql6rU1zAMLE6Lpj8nBrOjiiJPCIxMjTWet2H2MdbK8WU/pub?gid=96009902&single=true&output=csv";
     const GUESTS_HTML_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTq6ndKZ6FPdg9MYoijFW3J9cC76rXblQzzql6rU1zAMLE6Lpj8nBrOjiiJPCIxMjTWet2H2MdbK8WU/pubhtml?gid=96009902&single=true";
 
     const FALLBACK_BACKGROUND_IMAGE = "";
     const MAX_RESPONSE_ROWS = 200;
+    const WEBINFO_CACHE_KEY = "opheliaGuestListWebInfoV1";
+
+    // Buttons paint immediately from these defaults, then cached/sheet values replace them.
+    // The guest list itself stays sheet-driven.
+    const INITIAL_WEBINFO = {
+      backgroundUrl: "",
+      rsvpUrl: "",
+      homeUrl: "../",
+      guestCount: "—",
+      maybeGuestCount: "—",
+      registryLinks: [
+        "https://www.amazon.com/baby-reg/vanessa-feblowitz-ari-feblowitz-october-2026-excelsior/2VV1GJ3YMTCLH"
+      ]
+    };
 
     function normalize(value) {
       return String(value || "")
@@ -609,7 +674,6 @@
       return rows.filter(r => r.some(c => String(c).trim() !== ""));
     }
 
-
     function parsePublishedHtmlTable(html) {
       const doc = new DOMParser().parseFromString(html, "text/html");
       const table = doc.querySelector("table.waffle") || doc.querySelector("table");
@@ -619,8 +683,6 @@
       for (const tr of table.querySelectorAll("tr")) {
         const cells = [];
         for (const cell of tr.querySelectorAll("td, th")) {
-          // Google's published HTML includes row-number cells. Keep everything first,
-          // then remove obvious empty/number-only leading row headers below.
           cells.push(cell.textContent.replace(/\u00a0/g, " ").trim());
         }
 
@@ -646,15 +708,17 @@
         errors.push(error.message || String(error));
       }
 
-      try {
-        const response = await fetch(cacheBustUrl(htmlUrl), { cache: "no-store" });
-        if (!response.ok) throw new Error(`${labelForErrors} published HTML request failed: ${response.status}`);
-        const html = await response.text();
-        const rows = parsePublishedHtmlTable(html);
-        if (rows.length) return rows;
-        errors.push(`${labelForErrors} published HTML returned no table rows.`);
-      } catch (error) {
-        errors.push(error.message || String(error));
+      if (htmlUrl) {
+        try {
+          const response = await fetch(cacheBustUrl(htmlUrl), { cache: "no-store" });
+          if (!response.ok) throw new Error(`${labelForErrors} published HTML request failed: ${response.status}`);
+          const html = await response.text();
+          const rows = parsePublishedHtmlTable(html);
+          if (rows.length) return rows;
+          errors.push(`${labelForErrors} published HTML returned no table rows.`);
+        } catch (error) {
+          errors.push(error.message || String(error));
+        }
       }
 
       throw new Error(`${labelForErrors} could not load. ${errors.join(" | ")}`);
@@ -775,6 +839,82 @@
       }
     }
 
+    function readCachedWebInfo() {
+      try {
+        const cached = localStorage.getItem(WEBINFO_CACHE_KEY);
+        return cached ? JSON.parse(cached) : null;
+      } catch (error) {
+        console.warn("Could not read cached WebInfo:", error);
+        return null;
+      }
+    }
+
+    function writeCachedWebInfo(data) {
+      try {
+        localStorage.setItem(WEBINFO_CACHE_KEY, JSON.stringify({
+          ...data,
+          cachedAt: Date.now()
+        }));
+      } catch (error) {
+        console.warn("Could not cache WebInfo:", error);
+      }
+    }
+
+    function getNumericCount(value) {
+      const clean = String(value || "").trim();
+      if (!clean || clean === "—") return 0;
+
+      const number = parseFloat(clean.replace(/[^0-9.-]/g, ""));
+      return Number.isFinite(number) ? number : 0;
+    }
+
+    function getWebInfoData(rows) {
+      const guestCount = getValueToRight(rows, "Guest Count");
+      const maybeGuestCount = getValueToRight(rows, "Maybe  Guests") || getValueToRight(rows, "Maybe Guests");
+
+      return {
+        backgroundUrl: getValueToRight(rows, "Link to Background"),
+        rsvpUrl: getValueToRight(rows, "RSVP link"),
+        homeUrl: getValueToRight(rows, "Home link"),
+        guestCount,
+        maybeGuestCount,
+        registryLinks: getRegistryLinks(rows, 5)
+      };
+    }
+
+    function applyWebInfo(data = {}, options = {}) {
+      const merged = { ...INITIAL_WEBINFO, ...data };
+      const { updateBackground = false } = options;
+
+      const confirmedCountNumber = getNumericCount(merged.guestCount);
+      const maybeCountNumber = getNumericCount(merged.maybeGuestCount);
+      const possibleGuestCount = confirmedCountNumber + maybeCountNumber;
+
+      document.getElementById("guestCount").textContent = merged.guestCount || "—";
+      document.getElementById("possibleGuestCount").textContent = possibleGuestCount > 0 ? possibleGuestCount : "—";
+      document.getElementById("maybeGuestCount").textContent = merged.maybeGuestCount || "—";
+
+      createRegistryButtons(merged.registryLinks || []);
+
+      const rsvpButton = document.getElementById("rsvpButton");
+      if (merged.rsvpUrl) {
+        rsvpButton.href = merged.rsvpUrl;
+        rsvpButton.textContent = "RSVP";
+        rsvpButton.removeAttribute("aria-disabled");
+      } else {
+        rsvpButton.removeAttribute("href");
+        rsvpButton.textContent = "RSVP Link Coming Soon";
+        rsvpButton.setAttribute("aria-disabled", "true");
+      }
+
+      const homeButton = document.getElementById("homeButton");
+      homeButton.href = merged.homeUrl || "../";
+
+      if (updateBackground) {
+        setBackground(merged.backgroundUrl, FALLBACK_BACKGROUND_IMAGE);
+      }
+    }
+
     function splitAdditionalGuests(value) {
       const text = String(value || "").trim();
       if (!text) return [];
@@ -793,14 +933,6 @@
 
       const number = parseFloat(clean.replace(/[^0-9.-]/g, ""));
       return Number.isFinite(number) && number > 0;
-    }
-
-    function getNumericCount(value) {
-      const clean = String(value || "").trim();
-      if (!clean) return 0;
-
-      const number = parseFloat(clean.replace(/[^0-9.-]/g, ""));
-      return Number.isFinite(number) ? number : 0;
     }
 
     function getGuestEntries(rows, options = {}) {
@@ -898,11 +1030,15 @@
       }
     }
 
-    function createSparkles(count = 55) {
+    function createSparkles(count = 38) {
       const container = document.getElementById("sparkles");
-      const fragment = document.createDocumentFragment();
+      if (!container || container.childElementCount) return;
 
-      for (let i = 0; i < count; i++) {
+      const fragment = document.createDocumentFragment();
+      const prefersReducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const sparkleCount = prefersReducedMotion ? 14 : count;
+
+      for (let i = 0; i < sparkleCount; i++) {
         const sparkle = document.createElement("span");
         sparkle.className = "sparkle";
         sparkle.style.left = `${Math.random() * 100}%`;
@@ -923,54 +1059,22 @@
 
       const csv = await response.text();
       const rows = parseCsv(csv);
+      const data = getWebInfoData(rows);
 
-      const backgroundUrl = getValueToRight(rows, "Link to Background");
-      const rsvpUrl = getValueToRight(rows, "RSVP link");
-      const homeUrl = getValueToRight(rows, "Home link");
-      const guestCount = getValueToRight(rows, "Guest Count");
-      const maybeGuestCount = getValueToRight(rows, "Maybe  Guests") || getValueToRight(rows, "Maybe Guests");
-      const registryLinks = getRegistryLinks(rows, 5);
-
-      setBackground(backgroundUrl, FALLBACK_BACKGROUND_IMAGE);
-      const confirmedCountNumber = getNumericCount(guestCount);
-      const maybeCountNumber = getNumericCount(maybeGuestCount);
-      const possibleGuestCount = confirmedCountNumber + maybeCountNumber;
-
-      document.getElementById("guestCount").textContent = guestCount || "—";
-      document.getElementById("possibleGuestCount").textContent = possibleGuestCount > 0 ? possibleGuestCount : "—";
-      document.getElementById("maybeGuestCount").textContent = maybeGuestCount || "—";
-      createRegistryButtons(registryLinks);
-
-      const rsvpButton = document.getElementById("rsvpButton");
-      if (rsvpUrl) {
-        rsvpButton.href = rsvpUrl;
-      } else {
-        rsvpButton.removeAttribute("href");
-        rsvpButton.textContent = "RSVP Link Coming Soon";
-      }
-
-      const homeButton = document.getElementById("homeButton");
-      if (homeUrl) {
-        homeButton.href = homeUrl;
-      } else {
-        homeButton.href = "./";
-      }
+      applyWebInfo(data, { updateBackground: true });
+      writeCachedWebInfo(data);
     }
 
     async function loadGuestList() {
       const rows = await fetchRowsWithFallback(GUESTS_CSV_URL, GUESTS_HTML_URL, "Guest list sheet");
       console.log("Guest list rows loaded:", rows.length, rows.slice(0, 3));
 
-      // Load/render confirmed guests first so a problem with the Maybe column can never
-      // prevent the confirmed guest names from appearing.
       const guests = getGuestEntries(rows, {
         countColumnLabels: ["Number of guests", "Number of Guests", "Guests", "Attending"],
         missingColumnMessage: "Could not find the required confirmed guest list columns: Number of Guests and Guest Name."
       });
       renderGuestList(guests);
 
-      // Load Maybe guests separately. If the Maybe column is renamed or missing,
-      // keep the rest of the page working and show a helpful Maybe-only message.
       try {
         const maybeGuests = getGuestEntries(rows, {
           countColumnLabels: ["Maybe", "Maybe Guests", "Maybe  Guests"],
@@ -997,16 +1101,21 @@
     async function loadPageData() {
       createSparkles();
 
-      try {
-        await Promise.all([loadWebInfo(), loadGuestList()]);
-      } catch (error) {
+      // Paint buttons immediately, then cached button links/counts if we have them.
+      applyWebInfo(INITIAL_WEBINFO);
+      const cachedWebInfo = readCachedWebInfo();
+      if (cachedWebInfo) applyWebInfo(cachedWebInfo, { updateBackground: true });
+
+      loadWebInfo().catch(error => {
+        console.error(error);
+        // Keep the already-painted default/cached buttons instead of blanking them.
+      });
+
+      loadGuestList().catch(error => {
         console.error(error);
         document.getElementById("statusNote").textContent = "Unable to load the guest list. Please check that the Google Sheet tabs are published to the web as CSV.";
-        document.getElementById("guestCount").textContent = "—";
-        document.getElementById("possibleGuestCount").textContent = "—";
-        document.getElementById("maybeGuestCount").textContent = "—";
-        createRegistryButtons([]);
-      }
+        document.getElementById("maybeStatusNote").textContent = "";
+      });
     }
 
     loadPageData();
