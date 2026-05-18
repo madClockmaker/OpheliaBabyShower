@@ -345,6 +345,24 @@
       opacity: 0.75;
     }
 
+
+    /* Stability fixes: prevent mobile Safari from aggressively repainting/unloading glass panels. */
+    .card-wrap,
+    .info-panel,
+    .action-panel,
+    .magic-button {
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .magic-button[href="#"],
+    .magic-button:not([href]) {
+      opacity: 0.72;
+      pointer-events: none;
+    }
+
     @media (max-width: 880px) {
       html,
       body {
@@ -372,6 +390,16 @@
       .action-panel {
         min-width: 0;
         overflow: visible;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+      }
+
+      .sparkles {
+        position: absolute;
+      }
+
+      .sparkle:nth-child(n+26) {
+        display: none;
       }
     
       .info-panel {
@@ -413,7 +441,6 @@
         transform: none;
       }
     }
-    }
   </style>
 </head>
 
@@ -430,7 +457,7 @@
 
     <section class="content-grid">
       <div class="card-wrap loading" id="cardWrap">
-        <img id="mainCard" class="main-card" alt="Baby shower invitation card" />
+        <img id="mainCard" class="main-card" alt="Baby shower invitation card" loading="eager" decoding="async" fetchpriority="high" />
         <div id="cardFallback" class="image-fallback">
           The invitation image could not be embedded directly.<br>
           <a id="cardFallbackLink" href="#" target="_blank" rel="noopener">Open the card image here</a>
@@ -443,22 +470,22 @@
 
         <div class="info-item">
           <div class="info-label">Location</div>
-          <div class="info-value" id="location">Loading…</div>
+          <div class="info-value" id="location">Coming soon</div>
         </div>
 
         <div class="info-item">
           <div class="info-label">Date and Time</div>
-          <div class="info-value" id="dateTime">Loading…</div>
+          <div class="info-value" id="dateTime">Coming soon</div>
         </div>
 
         <div class="info-item">
           <div class="info-label">More Info</div>
-          <div class="info-value" id="moreInfo">Loading…</div>
+          <div class="info-value" id="moreInfo">Coming soon</div>
         </div>
 
         <div class="info-item">
           <div class="info-label">Contact</div>
-          <div class="info-value" id="contact">Loading…</div>
+          <div class="info-value" id="contact">Coming soon</div>
         </div>
       </aside>
 
@@ -488,7 +515,7 @@
                 color: var(--gold);
               "
             >
-              Loading…
+              0
             </span>
           </a>
         </h2>
@@ -531,6 +558,26 @@
     // /assets/background.jpg
     const FALLBACK_CARD_IMAGE = "";
     const FALLBACK_BACKGROUND_IMAGE = "";
+    const LOCAL_CACHE_KEY = "opheliaBabyShowerSiteData_v3";
+
+    // Hardwired first-paint data.
+    // The page renders this immediately, then quietly updates from the Google Sheet if new data exists.
+    // I could not safely inspect the redirected Google CSV from this environment, so verify these values once.
+    const INITIAL_SITE_DATA = {
+      cardUrl: "",
+      backgroundUrl: "",
+      rsvpUrl: "",
+      locationText: "Coming soon",
+      locationLink: "",
+      dateTime: "Coming soon",
+      moreInfo: "Coming soon",
+      contact: "Coming soon",
+      registryLinks: [
+        "https://www.amazon.com/baby-reg/vanessa-feblowitz-ari-feblowitz-october-2026-excelsior/2VV1GJ3YMTCLH"
+      ],
+      guestCount: "0",
+      guestListLink: ""
+    };
 
     const fieldMap = {
       "location": "location",
@@ -549,7 +596,23 @@
     function cacheBustUrl(url) {
       if (!url || url.startsWith("data:")) return url;
       const separator = url.includes("?") ? "&" : "?";
-      return `${url}${separator}v=${Date.now()}`;
+      // Five-minute cache bucket: fresh enough for updates, but not so aggressive that iOS reloads assets constantly.
+      return `${url}${separator}v=${Math.floor(Date.now() / 300000)}`;
+    }
+
+    function normalizeDriveImageUrl(url) {
+      const cleanUrl = String(url || "").trim();
+      if (!cleanUrl) return "";
+
+      const fileMatch = cleanUrl.match(/drive\.google\.com\/file\/d\/([^/]+)/i);
+      if (fileMatch) return `https://drive.google.com/uc?export=view&id=${fileMatch[1]}`;
+
+      const idMatch = cleanUrl.match(/[?&]id=([^&]+)/i);
+      if (cleanUrl.includes("drive.google.com") && idMatch) {
+        return `https://drive.google.com/uc?export=view&id=${idMatch[1]}`;
+      }
+
+      return cleanUrl;
     }
 
     function parseCsv(text) {
@@ -713,22 +776,31 @@
     }
 
     async function setEmbeddableImage(imgElement, fallbackElement, fallbackLink, primaryUrl, fallbackUrl = "") {
-      const urlsToTry = [primaryUrl, fallbackUrl].filter(Boolean);
+      const normalizedPrimary = normalizeDriveImageUrl(primaryUrl);
+      const normalizedFallback = normalizeDriveImageUrl(fallbackUrl);
+      const urlsToTry = [normalizedPrimary, normalizedFallback].filter(Boolean);
 
       if (!urlsToTry.length) {
         imgElement.style.display = "none";
         fallbackElement.style.display = "block";
         fallbackLink.removeAttribute("href");
-        fallbackLink.textContent = "Image link missing in Google Sheet";
+        fallbackLink.textContent = "Image link missing";
         document.getElementById("cardWrap").classList.remove("loading");
         return;
       }
 
-      fallbackLink.href = primaryUrl || fallbackUrl;
+      fallbackLink.href = normalizedPrimary || normalizedFallback;
+
+      // Do not force a reload if this image is already painted.
+      if (imgElement.dataset.cleanSrc === urlsToTry[0] && imgElement.complete && imgElement.naturalWidth > 0) {
+        document.getElementById("cardWrap").classList.remove("loading");
+        return;
+      }
 
       for (const url of urlsToTry) {
         try {
-          const loadedUrl = await preloadImage(url, { retries: 4, delay: 800, useCacheBust: true });
+          const loadedUrl = await preloadImage(url, { retries: 2, delay: 700, useCacheBust: false });
+          imgElement.dataset.cleanSrc = url;
           imgElement.src = loadedUrl;
           imgElement.style.display = "block";
           fallbackElement.style.display = "none";
@@ -745,19 +817,19 @@
     }
 
     async function setBackground(primaryUrl, fallbackUrl = "") {
-      const urlsToTry = [primaryUrl, fallbackUrl].filter(Boolean);
+      const urlsToTry = [normalizeDriveImageUrl(primaryUrl), normalizeDriveImageUrl(fallbackUrl)].filter(Boolean);
 
       for (const url of urlsToTry) {
         try {
-          const loadedUrl = await preloadImage(url, { retries: 4, delay: 800, useCacheBust: true });
+          if (document.body.dataset.backgroundSrc === url) return;
+          const loadedUrl = await preloadImage(url, { retries: 2, delay: 700, useCacheBust: false });
+          document.body.dataset.backgroundSrc = url;
           document.body.style.setProperty("--site-background", `url("${loadedUrl}")`);
           return;
         } catch (error) {
           console.warn(error.message);
         }
       }
-
-      console.warn("Background image could not be embedded. Best fix: put the image in /assets/background.jpg and set FALLBACK_BACKGROUND_IMAGE to that path.");
     }
 
     function createRegistryButtons(links) {
@@ -802,66 +874,109 @@
       container.appendChild(fragment);
     }
 
-    async function loadSiteData() {
+    function readCachedSiteData() {
       try {
-        const response = await fetch(cacheBustUrl(SHEET_CSV_URL), { cache: "no-store" });
-        if (!response.ok) throw new Error(`Sheet request failed: ${response.status}`);
+        return JSON.parse(localStorage.getItem(LOCAL_CACHE_KEY) || "null");
+      } catch (error) {
+        return null;
+      }
+    }
 
-        const csv = await response.text();
-        const rows = parseCsv(csv);
+    function saveCachedSiteData(data) {
+      try {
+        localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(data));
+      } catch (error) {
+        console.warn("Could not save local site cache", error);
+      }
+    }
 
-        const cardUrl = getValueToRight(rows, "Link  to Card") || getValueToRight(rows, "Link to Card");
-        const backgroundUrl = getValueToRight(rows, "Link to Background");
-        const rsvpUrl = getValueToRight(rows, "RSVP link");
-        const locationText = getValueToRight(rows, "Location");
-        const locationLink = getValueToRight(rows, "Location link");
-        const registryLinks = getRegistryLinks(rows, 5);
-        const guestCount = getValueToRight(rows, "Guest Count");
-        const guestListLink = getValueToRight(rows, "Guest list link");
+    function normalizeSiteData(data) {
+      return {
+        ...INITIAL_SITE_DATA,
+        ...data,
+        registryLinks: Array.isArray(data?.registryLinks) && data.registryLinks.length
+          ? data.registryLinks
+          : INITIAL_SITE_DATA.registryLinks
+      };
+    }
 
+    function applySiteData(rawData, options = {}) {
+      const data = normalizeSiteData(rawData || {});
+      const { updateImages = true } = options;
+
+      setLinkedLocation(data.locationText, data.locationLink);
+      setText("dateTime", data.dateTime);
+      setText("moreInfo", data.moreInfo);
+      setText("contact", data.contact);
+      setGuestCount(data.guestCount, data.guestListLink);
+      createRegistryButtons(data.registryLinks);
+
+      const rsvpButton = document.getElementById("rsvpButton");
+      if (data.rsvpUrl) {
+        rsvpButton.href = data.rsvpUrl;
+        rsvpButton.textContent = "RSVP";
+      } else {
+        rsvpButton.href = "#";
+        rsvpButton.textContent = "RSVP Link Coming Soon";
+      }
+
+      if (updateImages) {
         setEmbeddableImage(
           document.getElementById("mainCard"),
           document.getElementById("cardFallback"),
           document.getElementById("cardFallbackLink"),
-          cardUrl,
+          data.cardUrl,
           FALLBACK_CARD_IMAGE
         );
+        setBackground(data.backgroundUrl, FALLBACK_BACKGROUND_IMAGE);
+      }
+    }
 
-        setBackground(backgroundUrl, FALLBACK_BACKGROUND_IMAGE);
-        setLinkedLocation(locationText, locationLink);
-        setGuestCount(guestCount, guestListLink);
+    function rowsToSiteData(rows) {
+      return normalizeSiteData({
+        cardUrl: getValueToRight(rows, "Link  to Card") || getValueToRight(rows, "Link to Card"),
+        backgroundUrl: getValueToRight(rows, "Link to Background"),
+        rsvpUrl: getValueToRight(rows, "RSVP link"),
+        locationText: getValueToRight(rows, "Location"),
+        locationLink: getValueToRight(rows, "Location link"),
+        dateTime: getValueToRight(rows, "Date and Time"),
+        moreInfo: getValueToRight(rows, "More Info"),
+        contact: getValueToRight(rows, "Contact"),
+        registryLinks: getRegistryLinks(rows, 5),
+        guestCount: getValueToRight(rows, "Guest Count"),
+        guestListLink: getValueToRight(rows, "Guest list link")
+      });
+    }
 
-        for (const [sheetLabel, elementId] of Object.entries(fieldMap)) {
-          if (sheetLabel !== "location") {
-            setText(elementId, getValueToRight(rows, sheetLabel));
-          }
-        }
+    async function loadSiteData() {
+      // Immediate paint: hardwired values first, then last-known-good cache if available.
+      applySiteData(INITIAL_SITE_DATA, { updateImages: true });
+      const cached = readCachedSiteData();
+      if (cached) applySiteData(cached, { updateImages: true });
 
-        createRegistryButtons(registryLinks);
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 9000);
+        const response = await fetch(cacheBustUrl(SHEET_CSV_URL), {
+          cache: "no-store",
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
 
-        const rsvpButton = document.getElementById("rsvpButton");
-        if (rsvpUrl) {
-          rsvpButton.href = rsvpUrl;
-        } else {
-          rsvpButton.removeAttribute("href");
-          rsvpButton.textContent = "RSVP Link Coming Soon";
-        }
+        if (!response.ok) throw new Error(`Sheet request failed: ${response.status}`);
+
+        const csv = await response.text();
+        const rows = parseCsv(csv);
+        const sheetData = rowsToSiteData(rows);
+        saveCachedSiteData(sheetData);
+        applySiteData(sheetData, { updateImages: true });
       } catch (error) {
-        console.error(error);
-        setText("location", "Unable to load from Google Sheet");
-        setText("dateTime", "Please check the published sheet link");
-        setText("moreInfo", "Make sure the sheet is published to the web as CSV");
-        setText("contact", "");
-        createRegistryButtons([]);
-
-        document.getElementById("mainCard").style.display = "none";
-        document.getElementById("cardFallback").style.display = "block";
-        document.getElementById("cardFallbackLink").textContent = "Card image unavailable";
+        console.warn("Using hardwired/cached site data because the sheet did not load:", error);
         document.getElementById("cardWrap").classList.remove("loading");
       }
     }
 
-    createSparkles();
+    createSparkles(window.matchMedia("(max-width: 880px)").matches ? 25 : 55);
     loadSiteData();
   </script>
 </body>
