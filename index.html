@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link
+    rel="preload"
+    as="image"
+    href="https://raw.githubusercontent.com/madClockmaker/OpheliaBabyShower/main/Ophilia_BabyShower_invite.png"
+  />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ophelia Arwen Feblowitz Baby Shower</title>
@@ -457,7 +462,12 @@
 
     <section class="content-grid">
       <div class="card-wrap loading" id="cardWrap">
-        <img id="mainCard" class="main-card" alt="Baby shower invitation card" loading="eager" decoding="async" fetchpriority="high" />
+        <img
+          id="mainCard"
+          class="main-card"
+          alt="Baby shower invitation card"
+          src="https://raw.githubusercontent.com/madClockmaker/OpheliaBabyShower/main/Ophilia_BabyShower_invite.png"
+        />
         <div id="cardFallback" class="image-fallback">
           The invitation image could not be embedded directly.<br>
           <a id="cardFallbackLink" href="#" target="_blank" rel="noopener">Open the card image here</a>
@@ -556,8 +566,8 @@
     // Example GitHub repo setup:
     // /assets/card.jpg
     // /assets/background.jpg
-    const FALLBACK_CARD_IMAGE = "";
-    const FALLBACK_BACKGROUND_IMAGE = "";
+    const FALLBACK_CARD_IMAGE = "https://raw.githubusercontent.com/madClockmaker/OpheliaBabyShower/main/Ophilia_BabyShower_invite.png";
+    const FALLBACK_BACKGROUND_IMAGE = "https://github.com/madClockmaker/OpheliaBabyShower/blob/main/Ophelia_BabyShower_BG.png?raw=true";
     const LOCAL_CACHE_KEY = "opheliaBabyShowerSiteData_v3";
 
     // Hardwired first-paint data.
